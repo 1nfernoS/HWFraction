@@ -1,12 +1,15 @@
 from db.db_sql import db_open, db_close
+from settings import fraction
 import time
 
 
 def get_token(source):
     db, cursor = db_open()
 
-    if type(source) != str or len(source) > 2:
-        raise TypeError("Source should be str type and it's length should be less or equal 2")
+    if type(source) != str:
+        raise TypeError("Source should be str type")
+    elif len(source) > 2:
+        raise ValueError("Source length should be less or equal 2 symbols")
     source = source.upper()
 
     query = 'SELECT cToken FROM tSquads WHERE cSource = \"' + source + '\";'
@@ -33,12 +36,16 @@ def get_squads():
 def reg_squad(source, token):
     db, cursor = db_open()
 
-    if type(source) != str or len(source) > 2:
-        raise TypeError("Source should be str type and it's length should be less or equal 2")
+    if type(source) != str:
+        raise TypeError("Source should be str type")
+    elif len(source) > 2:
+        raise ValueError("Source's length should be less or equal 2 symbols")
     source = source.upper()
 
-    if type(token) != str or len(token) != 128:
-        raise TypeError("Token should be str type and it's length should be equal 128")
+    if type(token) != str:
+        raise TypeError("Token should be str type")
+    elif len(token) != 128:
+        raise ValueError("Token's length should be equal 128")
 
     query = 'INSERT INTO tSquads (cSource, cToken) ' \
             'VALUE (\"' + source + '\", \"' + token + '\");'
@@ -53,8 +60,10 @@ def reg_squad(source, token):
 def set_chat(source, id_chat):
     db, cursor = db_open()
 
-    if type(source) != str or len(source) > 2:
-        raise TypeError("Source should be str type and it's length should be less or equal 2")
+    if type(source) != str:
+        raise TypeError("Source should be str type")
+    elif len(source) > 2:
+        raise ValueError("Source's length should be less or equal 2 symbols")
     source = source.upper()
 
     query = 'SELECT * FROM tSquads WHERE cSource = \"' + source + '\";'
@@ -62,8 +71,10 @@ def set_chat(source, id_chat):
     if len(cursor.fetchall()) == 0:
         raise NameError("There is no \'" + source + "\' squad")
 
-    if type(id_chat) != int or 0 > id_chat > 2000000000:
-        raise TypeError("Chat Id should be int type and have positive value less than 2000000000")
+    if type(id_chat) != int:
+        raise TypeError("Chat Id should be int type")
+    elif 0 > id_chat > 2000000000:
+        raise ValueError("Chat Id should have positive value less than 2000000000")
 
     query = 'UPDATE tSquads SET cIdChat = ' + str(id_chat) + ' WHERE cSource = \"' + source + '\";'
     cursor.execute(query)
@@ -76,8 +87,10 @@ def set_chat(source, id_chat):
 def set_target(source, target, timer):
     db, cursor = db_open()
 
-    if type(source) != str or len(source) > 2:
-        raise TypeError("Source should be str type and it's length should be less or equal 2")
+    if type(source) != str:
+        raise TypeError("Source should be str type")
+    elif len(source) > 2:
+        raise ValueError("Source's length should be less or equal 2")
     source = source.upper()
 
     query = 'SELECT * FROM tSquads WHERE cSource = \"' + source + '\";'
@@ -85,12 +98,15 @@ def set_target(source, target, timer):
     if len(cursor.fetchall()) == 0:
         raise NameError("There is no \'" + source + "\' squad")
 
-    # TODO: target != fraction itself
-    if type(target) != int or target < 0 or target > 7:
-        raise TypeError("Target should be int type and have positive value less than 8")
+    if type(target) != int:
+        raise TypeError("Target should be int type")
+    elif target == fraction or target < 0 or target > 7:
+        raise ValueError("Target should have positive value less than 8 and not your fraction itself")
 
-    if type(timer) != int or timer < int(time.time()):
-        raise TypeError("Time should be int type, and have greater value than now (unix)")
+    if type(timer) != int:
+        raise TypeError("Time should be int type")
+    elif timer < int(time.time()):
+        raise ValueError("Time should have greater value than now (unix)")
 
     query = 'UPDATE tSquads SET cTarget = ' + str(target) + \
             ', cTime = ' + str(timer) + ' WHERE cSource = \"' + source + '\";'
@@ -104,8 +120,10 @@ def set_target(source, target, timer):
 def del_squad(source):
     db, cursor = db_open()
 
-    if type(source) != str or len(source) > 2:
-        raise TypeError("Source should be str type and it's length should be less or equal 2")
+    if type(source) != str:
+        raise TypeError("Source should be str type")
+    elif len(source) > 2:
+        raise ValueError("Source's length should be less or equal 2 symbols")
     source = source.upper()
 
     query = 'DELETE FROM tSquads WHERE cSource = \"' + source + '\";'

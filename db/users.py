@@ -1,6 +1,7 @@
 import datetime
 import time
 
+from settings import fraction
 from db.db_sql import db_open, db_close, get_columns
 from db.squads import get_squads
 
@@ -13,7 +14,60 @@ def get_user(user_id):
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
-    query = 'SELECT * FROM tPreferences WHERE cIdUser = %s;'
+    query = 'SELECT * FROM vUser WHERE cIdUser = %s;'
+    cursor.execute(query, (user_id,))
+    res = cursor.fetchall()
+    if len(res) == 0:
+        raise ValueError("User doesn't exist, try to reg him first")
+    res = res[0]
+
+    user = dict()
+    user['user_id'] = res[0]
+    user['role'] = res[1] if res[1] is not None else 12
+    user['subscribe'] = bool(res[2])
+    user['report'] = bool(res[3])
+    user['show_profile'] = bool(res[4])
+    user['show_report'] = bool(res[5])
+    user['nickname'] = res[6]
+    user['squad'] = res[7] if res[7] is not None else fraction
+    user['practice'] = res[8]
+    user['theory'] = res[9]
+    user['guile'] = res[10]
+    user['wisdom'] = res[11]
+    if bool(res[3]):
+        user['date_report'] = str(res[12])
+        user['income'] = res[13]
+        user['pure_income'] = res[14]
+
+    db_close(db, cursor)
+    return user
+
+
+def get_role(user_id):
+    db, cursor = db_open()
+
+    if type(user_id) != int:
+        raise TypeError("User Id should be int type")
+    elif user_id < 0 or user_id >= 2000000000:
+        raise ValueError("User Id should be positive and less than 2000000000")
+
+    query = 'SELECT cIdRole FROM tPreferences WHERE cIdUser = %s;'
+    cursor.execute(query, (user_id,))
+    res = cursor.fetchall()[0][0]
+
+    db_close(db, cursor)
+    return res
+
+
+def get_preferences(user_id):
+    db, cursor = db_open()
+
+    if type(user_id) != int:
+        raise TypeError("User Id should be int type")
+    elif user_id < 0 or user_id >= 2000000000:
+        raise ValueError("User Id should be positive and less than 2000000000")
+
+    query = 'SELECT * FROM vUser WHERE cIdUser = %s;'
     cursor.execute(query, (user_id,))
     res = cursor.fetchall()
     if len(res) == 0:
@@ -27,7 +81,7 @@ def get_user(user_id):
     user['report'] = bool(res[3])
     user['show_profile'] = bool(res[4])
     user['show_report'] = bool(res[5])
-    user['last_msg'] = res[6]
+    user['last_message'] = res[6]
 
     db_close(db, cursor)
     return user
@@ -75,7 +129,7 @@ def change_preferences(user_id, preference):
     if preference not in columns:
         raise ValueError("There is no option \'"+preference+"\'")
 
-    state = get_preferences(user_id, preference)
+    state = get_preference(user_id, preference)
     query = 'UPDATE tPreferences' \
             ' SET ' + preference + ' = ' + str(not state).upper() + \
             ' WHERE cIdUser = ' + str(user_id) + ';'
@@ -86,7 +140,7 @@ def change_preferences(user_id, preference):
     return
 
 
-def get_preferences(user_id, preference):
+def get_preference(user_id, preference):
     db, cursor = db_open()
 
     columns = get_columns('tPreferences')[2:-1]
@@ -123,7 +177,8 @@ def reg_user(user_id, last_msg_time):
         raise ValueError("Time should have smaller value than now (unix)")
 
     data = (user_id, last_msg_time)
-    query = 'INSERT INTO tPreferences VALUE (%s, NULL, FALSE, FALSE, FALSE, FALSE, %s);'
+    query = 'INSERT INTO tPreferences (cIdUser, cIsSubscribed, cIsReported, cShowProfile, cShowReport, cLastMsg) ' \
+            'VALUE (%s, FALSE, FALSE, FALSE, FALSE, %s);'
     cursor.execute(query, data)
     db.commit()
     set_profile(user_id, 'Аноним', None, 0, 0, 0, 0)
@@ -250,6 +305,8 @@ def set_report(user_id, date, income, pure_income):
                 'WHERE cIdUser = %(user_id)s;'
     cursor.execute(query, data)
     db.commit()
+
+    change_preferences(user_id, 'cIsReported')
 
     db_close(db, cursor)
     return

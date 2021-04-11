@@ -2,6 +2,7 @@ import traceback
 from json import JSONDecodeError
 from threading import Thread
 
+from db.users import get_msg, update_msg
 import settings
 import vk_api
 import flask
@@ -18,6 +19,33 @@ import commands
 # chats are 2000000000+
 
 app = Flask(__name__)
+
+# TODO:
+#   0.Structure
+#       0.1. Module of management fraction
+#   2.Distribution
+#       + 2.1 Distribution by forwarding
+#       2.2 Distribution by reaction on bot msgs
+#       2.3 Distribution in messages or/and on wall
+#       + 2.3.1 If possible, use existing app
+#       2.4 Notification before battle
+#       2.5 Statistics from battle to squads chats
+#   3.Api
+#       3.1 Changing token
+#       3.2 Keyboard with targets
+#       3.2.1 Keyboard with targets in command chat
+#       3.3 Access to LoS (Leader of Squad)
+#       3.3.1 Changing LoS
+#   //5.Settings
+#       5.1 Customize Notifications
+#       5.2 Enabling distribution
+#       5.3 Access control
+#       5.4 Commands for parse
+#       5.4.1 Customize presets
+#   6.QoL
+#       6.1 Pinned message in chats
+#       6.2 Profile message
+#       6.3 Employee list
 
 
 @app.route('/')
@@ -68,20 +96,17 @@ def internal_error():
 
 
 def message(msg):
-    t_msg = {'date': 1615112840, 'from_id': 260894984, 'id': 0, 'out': 0, 'peer_id': 2000000002, 'text': '/target 5',
-             'conversation_message_id': 21666, 'fwd_messages': [], 'important': False, 'random_id': 0,
-             'attachments': [], 'is_hidden': False}
 
     time = int(msg['date'])
     text = str(msg['text'])
     chat = int(msg['peer_id'])
     user = int(msg['from_id'])
 
-    if settings.old_msg['message'] == text and settings.old_msg['time'] == time:
+    if time == get_msg(user):
         vk_api.send(chat, "2fast4me")
+        return
     else:
-        settings.old_msg['message'] = text
-        settings.old_msg['time'] = time
+        update_msg(user, time)
 
     # forwards
     if len(msg['fwd_messages']) != 0 and text == '':
@@ -109,20 +134,16 @@ def message(msg):
         return
 
     # commands
-    # TODO: '/' commands only in chats
     if msg['text'].startswith('/'):
-        if user in settings.LO:
-            command = msg['text'].split()
-            command[0] = command[0].replace('/', '')
-            if command[0] in dir(commands):
-                # vk_api.send(chat, '\"/' + str(command[0])+'\" in list')
-                commands.start(msg, command[0])
-                # need to call somehow
-            else:
-                vk_api.send(chat, '\"/' + str(command[0]) + '\" not in list')
-            return
+        command = msg['text'].split()
+        command[0] = command[0].replace('/', '')
+        if command[0] in dir(commands):
+            # vk_api.send(chat, '\"/' + str(command[0])+'\" in list')
+            commands.start(msg, command[0])
+            # need to call somehow
         else:
-            vk_api.send(chat, "Access Denied")
+            vk_api.send(chat, '\"/' + str(command[0]) + '\" not in list')
+            return
         return
 
 

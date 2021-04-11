@@ -12,11 +12,14 @@ def get_token(source):
         raise ValueError("Source length should be less or equal 2 symbols")
     source = source.upper()
 
-    query = 'SELECT cToken FROM tSquads WHERE cSource = \"' + source + '\";'
-    cursor.execute(query)
+    data = (source,)
+    query = 'SELECT cToken FROM tSquads WHERE cSource = %s;'
+    cursor.execute(query, data)
+
+    res = cursor.fetchall()[0][0]
 
     db_close(db, cursor)
-    return cursor.fetchall()[0][0]
+    return res
 
 
 def get_squads():
@@ -47,10 +50,15 @@ def reg_squad(source, token):
     elif len(token) != 128:
         raise ValueError("Token's length should be equal 128")
 
-    query = 'INSERT INTO tSquads (cSource, cToken) ' \
-            'VALUE (\"' + source + '\", \"' + token + '\");'
-
-    cursor.execute(query)
+    query = 'SELECT cSource FROM tSquads WHERE cSource = %s;'
+    cursor.execute(query, (source,))
+    if len(cursor.fetchall()) == 0:
+        data = (source, token)
+        query = 'INSERT INTO tSquads (cSource, cToken) VALUE (%s, %s);'
+    else:
+        data = (token, source)
+        query = 'UPDATE tSquads SET cToken = %s WHERE cSource = %s;'
+    cursor.execute(query, data)
     db.commit()
 
     db_close(db, cursor)
@@ -66,8 +74,8 @@ def set_chat(source, id_chat):
         raise ValueError("Source's length should be less or equal 2 symbols")
     source = source.upper()
 
-    query = 'SELECT * FROM tSquads WHERE cSource = \"' + source + '\";'
-    cursor.execute(query)
+    query = 'SELECT * FROM tSquads WHERE cSource = %s;'
+    cursor.execute(query, (source,))
     if len(cursor.fetchall()) == 0:
         raise NameError("There is no \'" + source + "\' squad")
 
@@ -76,8 +84,9 @@ def set_chat(source, id_chat):
     elif 0 > id_chat > 2000000000:
         raise ValueError("Chat Id should have positive value less than 2000000000")
 
-    query = 'UPDATE tSquads SET cIdChat = ' + str(id_chat) + ' WHERE cSource = \"' + source + '\";'
-    cursor.execute(query)
+    data = (id_chat, source)
+    query = 'UPDATE tSquads SET cIdChat = %s WHERE cSource = %s;'
+    cursor.execute(query, data)
     db.commit()
 
     db_close(db, cursor)
@@ -115,8 +124,8 @@ def set_target(source, target, timer):
         raise ValueError("Source's length should be less or equal 2")
     source = source.upper()
 
-    query = 'SELECT * FROM tSquads WHERE cSource = \"' + source + '\";'
-    cursor.execute(query)
+    query = 'SELECT * FROM tSquads WHERE cSource = %s;'
+    cursor.execute(query, (source,))
     if len(cursor.fetchall()) == 0:
         raise NameError("There is no \'" + source + "\' squad")
 
@@ -130,9 +139,9 @@ def set_target(source, target, timer):
     elif timer < int(time.time()):
         raise ValueError("Time should have greater value than now (unix)")
 
-    query = 'UPDATE tSquads SET cTarget = ' + str(target) + \
-            ', cTime = ' + str(timer) + ' WHERE cSource = \"' + source + '\";'
-    cursor.execute(query)
+    data = (target, timer, source)
+    query = 'UPDATE tSquads SET cTarget = %s, cTime = %s WHERE cSource = %s;'
+    cursor.execute(query, data)
     db.commit()
 
     db_close(db, cursor)
@@ -148,8 +157,9 @@ def del_squad(source):
         raise ValueError("Source's length should be less or equal 2 symbols")
     source = source.upper()
 
-    query = 'DELETE FROM tSquads WHERE cSource = \"' + source + '\";'
-    cursor.execute(query)
+    data = (source,)
+    query = 'DELETE FROM tSquads WHERE cSource = %s;'
+    cursor.execute(query, data)
     db.commit()
 
     db_close(db, cursor)

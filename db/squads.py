@@ -84,6 +84,28 @@ def set_chat(source, id_chat):
     return
 
 
+def get_leaders(source):
+    db, cursor = db_open()
+
+    leaders = list()
+
+    if type(source) != str:
+        raise TypeError("Source should be str type")
+    elif len(source) > 2:
+        raise ValueError("Source's length should be less or equal 2")
+    source = source.upper()
+
+    data = (source,)
+    query = 'SELECT cIdUser FROM vUser WHERE cSquad = %s AND (cIdRole = 5 OR cIdRole = 4);'
+    cursor.execute(query, data)
+
+    for i in cursor.fetchall():
+        leaders.append(i[0])
+
+    db_close(db, cursor)
+    return leaders
+
+
 def set_target(source, target, timer):
     db, cursor = db_open()
 

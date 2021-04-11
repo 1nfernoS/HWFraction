@@ -163,6 +163,23 @@ def get_preference(user_id, preference):
     return bool(state)
 
 
+def get_squad(user_id):
+    db, cursor = db_open()
+
+    if type(user_id) != int:
+        raise TypeError("User Id should be int type")
+    elif user_id < 0 or user_id >= 2000000000:
+        raise ValueError("User Id should be positive and less than 2000000000")
+
+    data = (user_id,)
+    query = 'SELECT cSquad FROM vUser WHERE cIdUser = %s;'
+    cursor.execute(query, data)
+    res = cursor.fetchall()
+
+    db_close(db, cursor)
+    return res[0][0]
+
+
 def reg_user(user_id, last_msg_time):
     db, cursor = db_open()
 

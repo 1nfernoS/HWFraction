@@ -487,3 +487,26 @@ def del_data(user_id, tag):
 
     db_close(db, cursor)
     return
+
+
+def del_user(user_id):
+    db, cursor = db_open()
+
+    if type(user_id) != int:
+        raise TypeError("User Id should be int type")
+    elif user_id < 0 or user_id >= 2000000000:
+        raise ValueError("User Id should be positive and less than 2000000000")
+
+    data = (user_id,)
+    query = 'DELETE FROM tReports WHERE cIdUser = %s;'
+    cursor.execute(query, data)
+    db.commit()
+    query = 'DELETE FROM tProfile WHERE cIdUser = %s;'
+    cursor.execute(query, data)
+    db.commit()
+    query = 'DELETE FROM tPreferences WHERE cIdUser = %s;'
+    cursor.execute(query, data)
+    db.commit()
+
+    db_close(db, cursor)
+    return

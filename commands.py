@@ -2,6 +2,8 @@ import vk_api
 import hw_api
 import settings
 
+import db
+
 
 def start(msg, command):
     chat = msg['peer_id']
@@ -37,45 +39,90 @@ def kbd(msg, chat):
 
 
 def target(msg, chat):
+    roles = [0, 1, 3, 5, 7]
     # in multiThreading
 
     user = msg['from_id']
-    cmd = msg['text'].split()
-    cmd[1] = cmd[1].upper()
+    role_user = db.users.get_role(user)
 
-    if settings.LO[user] == '3':
-        # if not 3, like other LO
+    if role_user not in roles:
+        vk_api.send(chat, "Access Denied")
+        return
+
+    cmd = msg['text'].split()
+
+    # TeamLeader
+    if role_user in roles[0:3]:
         if len(cmd) == 3:
-            if cmd[1] in settings.squad_list.keys():
-                if 0 <= cmd[2] <= 7:
-                    if cmd[2] != 3:
-                        hw_api.set_target(cmd[1], 0)
-                    else:
-                        # target = 3
-                        vk_api.send(chat, 'Attack on yourself')
-                        return
-                else:
-                    # target = -1 or 9
-                    vk_api.send(chat, 'Wrong target')
-                    return
-            else:
-                # target ?? 2
-                vk_api.send(chat, 'Wrong source')
+
+            cmd[1] = cmd[1].upper()
+            if cmd[1] not in db.squads.get_squads():
+                vk_api.send(chat, "Wrong source")
                 return
 
-    if len(cmd) == 2:
-        if 0 <= cmd[1] <= 7:
-            if cmd[1] != 3:
-                hw_api.set_target(settings.LO[user], 0)
+            try:
+                cmd[2] = int(cmd[2])
+            except ValueError:
+                vk_api.send(chat, "Wrong target, should be number")
+                return
+
+            if 0 <= cmd[2] <= 7:
+                if cmd[2] == settings.fraction:
+                    vk_api.send(chat, 'Attack on yourself')
+                    return
             else:
-                # target = 3
+                # target = -1 or 9
+                vk_api.send(chat, 'Wrong target')
+                return
+
+            hw_api.set_target(cmd[1], cmd[2])
+            return
+
+        elif len(cmd) == 2:
+
+            try:
+                cmd[2] = int(cmd[2])
+            except ValueError:
+                vk_api.send(chat, "Wrong target, should be number")
+                return
+
+            if 0 <= cmd[2] <= 7:
+                if cmd[2] == settings.fraction:
+                    vk_api.send(chat, 'Attack on yourself')
+                    return
+            else:
+                # target = -1 or 9
+                vk_api.send(chat, 'Wrong target')
+                return
+
+            hw_api.set_target(settings.fraction, cmd[2])
+            return
+
+        else:
+            vk_api.send(chat, "Wrong arguments, (source and) target needed")
+            return
+
+    # Squad Leader
+    else:
+        if len(cmd) != 2:
+            vk_api.send(chat, "Wrong arguments, target needed")
+            return
+
+        try:
+            cmd[1] = int(cmd[1])
+        except ValueError:
+            vk_api.send(chat, "Wrong target, should be number")
+            return
+
+        if 0 <= cmd[1] <= 7:
+            if cmd[1] == settings.fraction:
                 vk_api.send(chat, 'Attack on yourself')
                 return
         else:
             # target = -1 or 9
             vk_api.send(chat, 'Wrong target')
             return
-    else:
-        # target what what WHAT
-        vk_api.send(chat, 'Wrong params')
+
+        source = db.users.get_squad(user)
+        hw_api.set_target(source, cmd[1])
         return

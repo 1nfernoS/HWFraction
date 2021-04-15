@@ -12,9 +12,83 @@ def start(msg, command):
     return
 
 
+def role(msg, chat):
+    roles = [0]
+
+    user = msg['from_id']
+    role_user = users.get_role(user)
+
+    if role_user not in roles:
+        vk_api.send(chat, "Access Denied")
+        return
+
+    command = msg['text'].split()
+    if len(command) != 2:
+        vk_api.send(chat, "Wrong arguments, role id needed")
+        return
+    if 'reply_message' in msg.keys():
+        user_id = msg['reply_message']['from_id']
+    else:
+        if len(msg['fwd_messages']) == 1:
+            user_id = msg['fwd_messages'][0]['from_id']
+        else:
+            vk_api.send(chat, "No reply or forward")
+            return
+
+    if user_id < 0:
+        vk_api.send(chat, "Only users can have roles")
+        return
+
+    role_id = int(command[1])
+    if role_id < 0 or role_id > 13:
+        vk_api.send(chat, "Wrong role id")
+        return
+    else:
+        users.set_role(user_id, role_id)
+        vk_api.send(chat, "Role set!")
+    return
+
+
+def role_list(msg, chat):
+    roles = [0]
+
+    user = msg['from_id']
+    role_user = users.get_role(user)
+
+    if role_user not in roles:
+        vk_api.send(chat, "Access Denied")
+        return
+
+    r_list = users.get_roles()
+    msg = ''
+    for i in r_list:
+        msg = msg + i + '\n'
+    vk_api.send(user, msg)
+    vk_api.send(chat, "List sent in your chat")
+    return
+
+
+def ping(msg, chat):
+    roles = [0, 1, 4]
+
+    user = msg['from_id']
+    role_user = users.get_role(user)
+
+    if role_user not in roles:
+        vk_api.send(chat, "Access Denied")
+        return
+
+    vk_api.send(chat, "Still Alive")
+    return
+
+
 def test(msg, chat):
     vk_api.send(chat, msg)
     return
+
+
+def kill(msg, chat):
+    raise Exception
 
 
 def kbda(msg, chat):

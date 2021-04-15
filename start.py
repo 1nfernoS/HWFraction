@@ -2,15 +2,15 @@ import traceback
 from json import JSONDecodeError
 from threading import Thread
 
-from db.users import get_msg, update_msg
+from db.users import get_msg, update_msg, get_user, reg_user
 import settings
 import vk_api
 import flask
 from flask import Flask, request, json, make_response
 import commands
 
-# distribution
-# targets
+# -+ distribution
+# + targets
 # keyboards
 # squads
 # battle results
@@ -31,16 +31,16 @@ app = Flask(__name__)
 #       2.4 Notification before battle
 #       2.5 Statistics from battle to squads chats
 #   3.Api
-#       3.1 Changing token
-#       3.2 Keyboard with targets
-#       3.2.1 Keyboard with targets in command chat
-#       3.3 Access to LoS (Leader of Squad)
-#       3.3.1 Changing LoS
+#       + 3.1 Changing token
+#       -+ 3.2 Keyboard with targets
+#       -+ 3.2.1 Keyboard with targets in command chat
+#       +- 3.3 Access to LoS (Leader of Squad)
+#       +- 3.3.1 Changing LoS
 #   //5.Settings
 #       5.1 Customize Notifications
 #       5.2 Enabling distribution
-#       5.3 Access control
-#       5.4 Commands for parse
+#       + 5.3 Access control
+#       + 5.4 Commands for parse
 #       5.4.1 Customize presets
 #   6.QoL
 #       6.1 Pinned message in chats
@@ -68,7 +68,7 @@ def handler():
         return make_response("Wrong data provided", 400)
     except TypeError:
         print(data)
-        return 'bad'
+        return make_response("Wrong data provided", 400)
 
     if type_msg == 'confirmation':
         return settings.confirmation_token
@@ -90,9 +90,9 @@ def handler():
 
 
 @app.errorhandler(500)
-def internal_error():
-    print("\n\n\n500 error caught\n\n\n")
-    print(traceback.format_exc())
+def internal_error(*args):
+    vk_api.send(settings.errors, str(traceback.format_exc(-5)))
+    return make_response('ok', 200)
 
 
 def message(msg):
@@ -101,6 +101,11 @@ def message(msg):
     text = str(msg['text'])
     chat = int(msg['peer_id'])
     user = int(msg['from_id'])
+
+    try:
+        get_user(user)
+    except ValueError:
+        reg_user(user, time-1)
 
     if time == get_msg(user):
         vk_api.send(chat, "2fast4me")

@@ -17,7 +17,7 @@ def reg_user(user_id, last_msg_time):
     if type(last_msg_time) != int:
         raise TypeError("Time should be int type")
     elif last_msg_time > int(time.time()):
-        raise ValueError("Time should have smaller value than now (unix)")
+        raise ValueError("Time should have lesser value than now (unix)")
 
     data = (user_id, last_msg_time)
     query = 'INSERT INTO tPreferences (cIdUser, cIsSubscribed, cIsReported, cShowProfile, cShowReport, cLastMsg) ' \
@@ -26,6 +26,8 @@ def reg_user(user_id, last_msg_time):
     db.commit()
     set_profile(user_id, 'Аноним', None, 0, 0, 0, 0)
     set_report(user_id, int(time.time()), 0, 0)
+
+    change_preferences(user_id, 'cIsReported')
 
     db_close(db, cursor)
     return
@@ -113,6 +115,20 @@ def set_role(user_id, role):
     return
 
 
+def get_roles():
+    db, cursor = db_open()
+
+    roles = list()
+    query = 'SELECT * FROM tRole'
+    cursor.execute(query)
+
+    for r in cursor.fetchall():
+        roles.append(str(r[0]) + '. ' + r[1])
+
+    db_close(db, cursor)
+    return roles
+
+
 def get_role(user_id):
     db, cursor = db_open()
 
@@ -123,10 +139,13 @@ def get_role(user_id):
 
     query = 'SELECT cIdRole FROM tPreferences WHERE cIdUser = %s;'
     cursor.execute(query, (user_id,))
-    res = cursor.fetchall()[0][0]
+    res = cursor.fetchall()
 
     db_close(db, cursor)
-    return res
+    if len(res) == 0:
+        return 13
+    else:
+        return res[0][0]
 
 
 def get_preferences(user_id):
@@ -168,10 +187,13 @@ def get_msg(user_id):
     data = (user_id,)
     query = 'SELECT cLastMsg FROM tPreferences WHERE cIdUser = %s;'
     cursor.execute(query, data)
-    res = cursor.fetchall()[0][0]
+    res = cursor.fetchall()
 
     db_close(db, cursor)
-    return res
+    if len(res) == 0:
+        return None
+    else:
+        return res[0][0]
 
 
 def update_msg(user_id, msg_time):
@@ -189,8 +211,8 @@ def update_msg(user_id, msg_time):
 
     if type(msg_time) != int:
         raise TypeError("Time should be int type")
-    elif msg_time < int(time.time()):
-        raise ValueError("Time should have greater value than now (unix)")
+    elif msg_time > int(time.time()):
+        raise ValueError("Time should have lesser value than now (unix)")
 
     data = (msg_time, user_id)
     query = 'UPDATE tPreferences SET cLastMsg = %s WHERE cIdUser = %s;'

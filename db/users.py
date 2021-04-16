@@ -93,6 +93,22 @@ def del_user(user_id):
     return
 
 
+def count_role(role_id):
+    db, cursor = db_open()
+
+    if type(role_id) != int:
+        raise TypeError("Role Id should be int type")
+    elif role_id < 0 or role_id > 13:
+        raise ValueError("Role Id should be positive and less or equal 13")
+
+    query = 'SELECT COUNT(*) FROM tPreferences WHERE cIdRole = %s;'
+    cursor.execute(query, (role_id,))
+    res = cursor.fetchall()[0][0]
+
+    db_close(db, cursor)
+    return res
+
+
 def set_role(user_id, role):
     db, cursor = db_open()
 

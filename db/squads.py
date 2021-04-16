@@ -36,6 +36,18 @@ def get_squads():
     return squads
 
 
+def count_squads():
+    db, cursor = db_open()
+
+    query = 'SELECT COUNT(*) FROM tSquads;'
+    cursor.execute(query)
+    res = cursor.fetchall()[0][0]
+
+    db_close(db, cursor)
+    return res
+
+
+
 def reg_squad(source, token):
     db, cursor = db_open()
 

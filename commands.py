@@ -31,20 +31,30 @@ def role(**kwargs):
         if len(kwargs['msg']['fwd_messages']) == 1:
             user_id = kwargs['msg']['fwd_messages'][0]['from_id']
         else:
-            vk_api.send(kwargs['chat'], "No reply or forward")
+            vk_api.send(kwargs['chat'], "No reply or wrong forward")
             return
 
     if user_id < 0:
         vk_api.send(kwargs['chat'], "Only users can have roles")
         return
 
-    kwargs['role_id'] = int(command[1])
-    if kwargs['role_id'] < 0 or kwargs['role_id'] > 13:
+    squads_count = squads.count_squads()-1
+    '''
+    1 Creator, 1 TeamLeader, up to 5 other TeamLeaders
+    SquadLeaders = count squads without fraction, 
+    up to 20 Squad members per squad, including leader
+    '''
+    role_limit = {0: 1, 1: 1, 2: 5, 5: squads_count, 9: squads_count*19}
+
+    role_id = int(command[1])
+    if role_id < 0 or role_id > 13:
         vk_api.send(kwargs['chat'], "Wrong role id")
         return
-    else:
+    if users.count_role(role_id) < role_limit[role_id]:
         users.set_role(user_id, kwargs['role_id'])
         vk_api.send(kwargs['chat'], "Role set!")
+    else:
+        vk_api.send(kwargs['chat'], "Limit of Role!")
     return
 
 
@@ -60,7 +70,7 @@ def role_list(**kwargs):
     for i in r_list:
         message = message + i + '\n'
     vk_api.send(kwargs['msg']['from_id'], message)
-    vk_api.send(kwargs['chat'], "List sent in your kwargs['chat'")
+    vk_api.send(kwargs['chat'], "List sent in your chat")
     return
 
 
@@ -81,12 +91,19 @@ def test(**kwargs):
 
 
 def kill(**kwargs):
+    roles = [0]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
     raise Exception
 
 
 def kbda(**kwargs):
+    # TODO
     # in multiThreading
-    vk_api.send(kwargs['chat'], kwargs['msg'])
+    vk_api.send(kwargs['chat'], 'Make deleting keyboard')
     return
 
 
@@ -99,7 +116,7 @@ def id(**kwargs):
 
     if 'reply_message' in kwargs['msg'].keys():
         vk_api.send(kwargs['chat'], kwargs['msg']['reply_message']['from_id'])
-        return kwargs['msg']['reply_message']['from_id']
+        return
     elif len(kwargs['msg']['fwd_messages']) == 1:
         vk_api.send(kwargs['chat'], kwargs['msg']['fwd_messages'][0]['from_id'])
         return
@@ -109,7 +126,8 @@ def id(**kwargs):
 
 
 def kbd(**kwargs):
-    vk_api.send(kwargs['chat'], "keyboard")
+    # TODO
+    vk_api.send(kwargs['chat'], "Make keyboard")
     return
 
 
@@ -133,7 +151,7 @@ def reg_squad(**kwargs):
     cmd[1] = cmd[1].upper()
 
     if len(cmd[2]) != 128 or not hw_api.check(cmd[1], cmd[2]):
-        vk_api.send(kwargs['chat'], "Wrong token")
+        vk_api.send(kwargs['chat'], "Wrong token or squad")
         return
     else:
         squads.reg_squad(cmd[1], cmd[2])
@@ -143,6 +161,7 @@ def reg_squad(**kwargs):
 
 def target(**kwargs):
     roles = [0, 1, 3, 5, 7]
+    # TODO
     # in multiThreading
 
     if kwargs['role_id'] not in roles:

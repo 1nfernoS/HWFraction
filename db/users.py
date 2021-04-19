@@ -36,6 +36,24 @@ def reg_user(user_id, last_msg_time):
     return
 
 
+def user_list():
+    query = 'SELECT cIdUser, cIdRole FROM vUser;'
+
+    db, cursor = db_open()
+
+    cursor.execute(query)
+    res = cursor.fetchall()
+
+    db_close(db, cursor)
+
+    employee = dict()
+
+    for r in res:
+        employee[r[0]] = r[1]
+
+    return employee
+
+
 def get_user(user_id):
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
@@ -147,10 +165,11 @@ def get_roles():
     db, cursor = db_open()
 
     cursor.execute(query)
+    res = cursor.fetchall()
 
     db_close(db, cursor)
 
-    for r in cursor.fetchall():
+    for r in res:
         roles.append(str(r[0]) + '. ' + r[1])
     return roles
 

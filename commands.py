@@ -1,3 +1,5 @@
+from threading import Thread
+
 import vk_api
 import hw_api
 from settings import fraction
@@ -8,9 +10,53 @@ import db.squads as squads
 
 def start(msg, command):
     chat = msg['peer_id']
-    user = msg['from_id']
-    role_id = users.get_role(user)
+    user_id = msg['from_id']
+    role_id = users.get_role(user_id)
     globals()[command](msg=msg, chat=chat, role_id=role_id)
+    return
+
+
+def user(**kwargs):
+    roles = [0, 1, 3, 5, 7]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    # TeamLeader
+    if kwargs['role_id'] in roles[0:3]:
+        cmd = kwargs['msg']['text'].split()
+        if len(cmd) == 2:
+            cmd[1] = cmd[1].upper()
+            if cmd[1] not in squads.get_squads():
+                vk_api.send(kwargs['chat'], "Wrong squad")
+                return
+            squad_users = squads.squad_users(cmd[1])
+            msg = ''
+            for i in squad_users:
+                msg = msg + '[id' + str(i) + '|' + str(squad_users[i]) + ']\n'
+            vk_api.send(kwargs['chat'], msg)
+            return
+        elif len(cmd) == 1:
+            leaders = dict()
+            for i in squads.get_squads():
+                for j in squads.get_leaders(i):
+                    leaders[j] = i
+            msg = ''
+            for i in leaders:
+                msg = msg + '[id' + str(i) + '|' + users.get_profile(i)['nickname'] + ']: ' + leaders[i] + '\n'
+            vk_api.send(kwargs['chat'], msg)
+            return
+        else:
+            # TODO
+            vk_api.send(kwargs['chat'], "Wrong arguments, (source) is needed")
+    # SquadLeader
+    else:
+        squad_users = squads.squad_users(users.get_squad(kwargs['msg']['from_id']))
+        msg = ''
+        for i in squad_users:
+            msg = msg + '[id' + str(i) + '|' + str(squad_users[i]) + ']\n'
+        vk_api.send(kwargs['chat'], msg)
     return
 
 
@@ -101,9 +147,14 @@ def kill(**kwargs):
 
 
 def kbda(**kwargs):
-    # TODO
-    # in multiThreading
-    vk_api.send(kwargs['chat'], 'Make deleting keyboard')
+    # TeamLeaders only
+    roles = [0, 1, 3]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+    Thread(target=hw_api.remove_all).run()
+    vk_api.send(kwargs['chat'], "Keyboards are removed")
     return
 
 
@@ -126,8 +177,35 @@ def id(**kwargs):
 
 
 def kbd(**kwargs):
-    # TODO
-    vk_api.send(kwargs['chat'], "Make keyboard")
+    # TeamLeaders only
+    roles = [0, 1, 3]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    keyboard = {'one_time': False, 'buttons': [
+        [
+            {'action': {'type': 'text', 'label': '&#128160; Aegis', 'payload': '{"target": 1}'},
+             'color': 'primary'},
+            {'action': {'type': 'text', 'label': '&#128679; V-Hack', 'payload': '{"target": 2}'},
+             'color': 'primary'},
+            {'action': {'type': 'text', 'label': '&#127541; Hu&#466;qi&#225;ng', 'payload': '{"target": 4}'},
+             'color': 'primary'}
+        ],
+        [
+            {'action': {'type': 'text', 'label': '&#128305; NetKings', 'payload': '{"target": 5}'},
+             'color': 'primary'},
+            {'action': {'type': 'text', 'label': '&#127482;&#127480; NHS', 'payload': '{"target": 6}'},
+             'color': 'primary'},
+            {'action': {'type': 'text', 'label': '&#128272; Защита', 'payload': '{"target": 7}'},
+             'color': 'secondary'}
+        ],
+        [
+            {'action': {'type': 'text', 'label': '&#10060; Удалить клавиатуру', 'payload': '{"target": 0}'},
+             'color': 'negative'}
+        ]]}
+    vk_api.send(kwargs['chat'], "Your keyboard!", keyboard)
     return
 
 
@@ -195,6 +273,7 @@ def target(**kwargs):
                 return
 
             hw_api.set_target(cmd[1], cmd[2])
+            vk_api.send(kwargs['chat'], "Target sent!")
             return
 
         elif len(cmd) == 2:

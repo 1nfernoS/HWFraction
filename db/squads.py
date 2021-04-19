@@ -47,7 +47,6 @@ def count_squads():
     return res
 
 
-
 def reg_squad(source, token):
     db, cursor = db_open()
 
@@ -117,7 +116,8 @@ def get_leaders(source):
     source = source.upper()
 
     data = (source,)
-    query = 'SELECT cIdUser FROM vUser WHERE cSquad = %s AND (cIdRole = 5 OR cIdRole = 4);'
+    query = 'SELECT cIdUser FROM vUser ' \
+            'WHERE cSquad = %s AND (cIdRole = 0 OR cIdRole = 1 OR cIdRole = 3 OR cIdRole = 5 OR cIdRole = 7);'
     cursor.execute(query, data)
 
     for i in cursor.fetchall():
@@ -127,9 +127,30 @@ def get_leaders(source):
     return leaders
 
 
-def set_target(source, target, timer):
+def squad_users(source):
+    if type(source) != str:
+        raise TypeError("Source should be str type")
+    elif len(source) > 2:
+        raise ValueError("Source's length should be less or equal 2")
+    source = source.upper()
+
+    user_list = dict()
+    query = 'SELECT cIdUser, cNickname FROM vUser WHERE cSquad = %s;'
+
     db, cursor = db_open()
 
+    cursor.execute(query, (source,))
+    res = cursor.fetchall()
+
+    db_close(db, cursor)
+
+    for i in res:
+        user_list[i[0]] = i[1]
+
+    return user_list
+
+
+def set_target(source, target, timer):
     if type(source) != str:
         raise TypeError("Source should be str type")
     elif len(source) > 2:
@@ -137,8 +158,15 @@ def set_target(source, target, timer):
     source = source.upper()
 
     query = 'SELECT * FROM tSquads WHERE cSource = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (source,))
-    if len(cursor.fetchall()) == 0:
+    res = cursor.fetchall()
+
+    db_close(db, cursor)
+
+    if len(res) == 0:
         raise NameError("There is no \'" + source + "\' squad")
 
     if type(target) != int:
@@ -153,6 +181,9 @@ def set_target(source, target, timer):
 
     data = (target, timer, source)
     query = 'UPDATE tSquads SET cTarget = %s, cTime = %s WHERE cSource = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
 
@@ -161,8 +192,6 @@ def set_target(source, target, timer):
 
 
 def del_squad(source):
-    db, cursor = db_open()
-
     if type(source) != str:
         raise TypeError("Source should be str type")
     elif len(source) > 2:
@@ -171,6 +200,9 @@ def del_squad(source):
 
     data = (source,)
     query = 'DELETE FROM tSquads WHERE cSource = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
 

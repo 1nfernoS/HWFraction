@@ -7,8 +7,6 @@ from db.squads import get_squads
 
 
 def reg_user(user_id, last_msg_time):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -22,28 +20,37 @@ def reg_user(user_id, last_msg_time):
     data = (user_id, last_msg_time)
     query = 'INSERT INTO tPreferences (cIdUser, cIsSubscribed, cIsReported, cShowProfile, cShowReport, cLastMsg) ' \
             'VALUE (%s, FALSE, FALSE, FALSE, FALSE, %s);'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
+
+    db_close(db, cursor)
+
     set_profile(user_id, 'Аноним', None, 0, 0, 0, 0)
     set_report(user_id, int(time.time()), 0, 0)
 
     change_preferences(user_id, 'cIsReported')
 
-    db_close(db, cursor)
     return
 
 
 def get_user(user_id):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     query = 'SELECT * FROM vUser WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (user_id,))
     res = cursor.fetchall()
+
+    db_close(db, cursor)
+
     if len(res) == 0:
         raise ValueError("User doesn't exist, try to reg him first")
     res = res[0]
@@ -66,13 +73,10 @@ def get_user(user_id):
         user['income'] = res[13]
         user['pure_income'] = res[14]
 
-    db_close(db, cursor)
     return user
 
 
 def del_user(user_id):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -80,6 +84,9 @@ def del_user(user_id):
 
     data = (user_id,)
     query = 'DELETE FROM tReports WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
     query = 'DELETE FROM tProfile WHERE cIdUser = %s;'
@@ -94,14 +101,15 @@ def del_user(user_id):
 
 
 def count_role(role_id):
-    db, cursor = db_open()
-
     if type(role_id) != int:
         raise TypeError("Role Id should be int type")
     elif role_id < 0 or role_id > 13:
         raise ValueError("Role Id should be positive and less or equal 13")
 
-    query = 'SELECT COUNT(*) FROM tPreferences WHERE cIdRole = %s;'
+    query = 'SELECT COUNT(*) FROM vUser WHERE cIdRole = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (role_id,))
     res = cursor.fetchall()[0][0]
 
@@ -110,8 +118,6 @@ def count_role(role_id):
 
 
 def set_role(user_id, role):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -124,6 +130,9 @@ def set_role(user_id, role):
 
     data = (role, user_id)
     query = 'UPDATE tPreferences SET cIdRole = %s WHERE cIdUser = %s'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
 
@@ -132,32 +141,35 @@ def set_role(user_id, role):
 
 
 def get_roles():
+    roles = list()
+    query = 'SELECT * FROM tRole;'
+
     db, cursor = db_open()
 
-    roles = list()
-    query = 'SELECT * FROM tRole'
     cursor.execute(query)
+
+    db_close(db, cursor)
 
     for r in cursor.fetchall():
         roles.append(str(r[0]) + '. ' + r[1])
-
-    db_close(db, cursor)
     return roles
 
 
 def get_role(user_id):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
-    query = 'SELECT cIdRole FROM tPreferences WHERE cIdUser = %s;'
+    query = 'SELECT cIdRole FROM vUser WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (user_id,))
     res = cursor.fetchall()
 
     db_close(db, cursor)
+
     if len(res) == 0:
         return 13
     else:
@@ -165,16 +177,20 @@ def get_role(user_id):
 
 
 def get_preferences(user_id):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     query = 'SELECT * FROM vUser WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (user_id,))
     res = cursor.fetchall()
+
+    db_close(db, cursor)
+
     if len(res) == 0:
         raise ValueError("User doesn't exist, try to reg him first")
     res = res[0]
@@ -187,14 +203,10 @@ def get_preferences(user_id):
     user['show_profile'] = bool(res[4])
     user['show_report'] = bool(res[5])
     user['last_message'] = res[6]
-
-    db_close(db, cursor)
     return user
 
 
 def get_msg(user_id):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -202,10 +214,14 @@ def get_msg(user_id):
 
     data = (user_id,)
     query = 'SELECT cLastMsg FROM tPreferences WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     res = cursor.fetchall()
 
     db_close(db, cursor)
+
     if len(res) == 0:
         return None
     else:
@@ -213,8 +229,6 @@ def get_msg(user_id):
 
 
 def update_msg(user_id, msg_time):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -232,6 +246,9 @@ def update_msg(user_id, msg_time):
 
     data = (msg_time, user_id)
     query = 'UPDATE tPreferences SET cLastMsg = %s WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
 
@@ -240,8 +257,6 @@ def update_msg(user_id, msg_time):
 
 
 def change_preferences(user_id, preference):
-    db, cursor = db_open()
-
     columns = get_columns('tPreferences')[2:-1]
 
     if type(user_id) != int:
@@ -258,6 +273,9 @@ def change_preferences(user_id, preference):
     query = 'UPDATE tPreferences' \
             ' SET ' + preference + ' = ' + str(not state).upper() + \
             ' WHERE cIdUser = ' + str(user_id) + ';'
+
+    db, cursor = db_open()
+
     cursor.execute(query)
     db.commit()
 
@@ -266,8 +284,6 @@ def change_preferences(user_id, preference):
 
 
 def get_preference(user_id, preference):
-    db, cursor = db_open()
-
     columns = get_columns('tPreferences')[2:-1]
 
     if type(user_id) != int:
@@ -280,7 +296,10 @@ def get_preference(user_id, preference):
     if preference not in columns:
         raise ValueError("There is no option \'" + preference + "\'")
 
-    query = 'SELECT ' + preference + ' FROM tPreferences WHERE cIdUser = ' + str(user_id) + ';'
+    query = 'SELECT ' + preference + ' FROM vUser WHERE cIdUser = ' + str(user_id) + ';'
+
+    db, cursor = db_open()
+
     cursor.execute(query)
     state = cursor.fetchall()[0][0]
 
@@ -289,8 +308,6 @@ def get_preference(user_id, preference):
 
 
 def get_squad(user_id):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -298,6 +315,9 @@ def get_squad(user_id):
 
     data = (user_id,)
     query = 'SELECT cSquad FROM vUser WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     res = cursor.fetchall()
 
@@ -306,8 +326,6 @@ def get_squad(user_id):
 
 
 def set_profile(user_id, nick, source, practice, theory, guile, wisdom):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -347,6 +365,9 @@ def set_profile(user_id, nick, source, practice, theory, guile, wisdom):
             'practice': practice, 'teo': theory, 'hit': guile, 'mud': wisdom}
 
     query = 'SELECT * FROM tProfile WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (user_id,))
     if len(cursor.fetchall()) == 0:
         query = 'INSERT INTO tProfile VALUE(%(user_id)s,%(nick)s,%(source)s,%(practice)s,%(teo)s,%(hit)s,%(mud)s);'
@@ -363,16 +384,20 @@ def set_profile(user_id, nick, source, practice, theory, guile, wisdom):
 
 
 def get_profile(user_id):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
-    query = 'SELECT * FROM tProfile WHERE cIdUser = %s;'
+    query = 'SELECT cIdUser, cNickname, cSquad, cPractice, cTheory, cGuile, cWisdom ' \
+            'FROM vUser WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (user_id,))
     res = cursor.fetchall()[0]
+
+    db_close(db, cursor)
 
     user = dict()
     user['user_id'] = res[0]
@@ -382,14 +407,10 @@ def get_profile(user_id):
     user['theory'] = res[4]
     user['guile'] = res[5]
     user['wisdom'] = res[6]
-
-    db_close(db, cursor)
     return user
 
 
 def set_report(user_id, date, income, pure_income):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -413,6 +434,9 @@ def set_report(user_id, date, income, pure_income):
     data = {'user_id': user_id, 'date': date, 'income': income, 'pure_income': pure_income}
 
     query = 'SELECT * FROM tReports WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (user_id,))
     if len(cursor.fetchall()) == 0:
         query = 'INSERT INTO tReports VALUE(%(user_id)s, %(date)s, %(income)s, %(pure_income)s);'
@@ -423,23 +447,28 @@ def set_report(user_id, date, income, pure_income):
     cursor.execute(query, data)
     db.commit()
 
+    db_close(db, cursor)
+
     change_preferences(user_id, 'cIsReported')
 
-    db_close(db, cursor)
     return
 
 
 def get_report(user_id):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     query = 'SELECT * FROM tReports WHERE cIdUser = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (user_id,))
     res = cursor.fetchall()
+
+    db_close(db, cursor)
+
     if len(res) == 0:
         raise ValueError("Report doesn't exist, try to add it first")
     res = res[0]
@@ -449,14 +478,10 @@ def get_report(user_id):
     report['date'] = str(res[1])
     report['income'] = res[2]
     report['pure_income'] = res[3]
-
-    db_close(db, cursor)
     return report
 
 
 def set_discipline(user_get, user_set, reason, date):
-    db, cursor = db_open()
-
     if type(user_get) != int or type(user_set) != int:
         raise TypeError("User Id should be int type")
     elif user_get < 0 or user_get >= 2000000000 or user_set < 0 or user_set >= 2000000000:
@@ -474,6 +499,9 @@ def set_discipline(user_get, user_set, reason, date):
 
     data = (user_get, user_set, reason, date)
     query = 'INSERT INTO tDiscipline VALUE (%s, %s, %s, %s);'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
 
@@ -482,16 +510,20 @@ def set_discipline(user_get, user_set, reason, date):
 
 
 def get_discipline(user_id):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     query = 'SELECT * FROM tDiscipline WHERE cIdUser = %s'
+
+    db, cursor = db_open()
+
     cursor.execute(query, (user_id,))
     res = cursor.fetchall()
+
+    db_close(db, cursor)
+
     if len(res) == 0:
         discipline = None
     else:
@@ -502,14 +534,10 @@ def get_discipline(user_id):
             warn['reason'] = i[2]
             warn['time'] = i[3]
             discipline.append(warn)
-
-    db_close(db, cursor)
     return discipline
 
 
 def del_discipline(user_id, count=1):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -522,6 +550,9 @@ def del_discipline(user_id, count=1):
 
     data = (user_id, count)
     query = 'DELETE FROM tDiscipline WHERE cIdUser = %s LIMIT %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
 
@@ -530,8 +561,6 @@ def del_discipline(user_id, count=1):
 
 
 def set_data(user_id, tag, text):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -549,6 +578,9 @@ def set_data(user_id, tag, text):
 
     data = (user_id, tag, text)
     query = 'INSERT INTO tData VALUE (%s, %s, %s);'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
 
@@ -557,8 +589,6 @@ def set_data(user_id, tag, text):
 
 
 def get_data(user_id, tag):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -571,20 +601,23 @@ def get_data(user_id, tag):
 
     data = (user_id, tag)
     query = 'SELECT * FROM tData WHERE cIdUser = %s AND cTag = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     res = cursor.fetchall()
+
+    db_close(db, cursor)
+
     if len(res) == 0:
         result = None
     else:
         result = res[0][2]
 
-    db_close(db, cursor)
     return result
 
 
 def del_data(user_id, tag):
-    db, cursor = db_open()
-
     if type(user_id) != int:
         raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
@@ -599,6 +632,9 @@ def del_data(user_id, tag):
 
     data = (user_id, tag)
     query = 'DELETE FROM tData WHERE cIdUser = %s AND cTag = %s;'
+
+    db, cursor = db_open()
+
     cursor.execute(query, data)
     db.commit()
 

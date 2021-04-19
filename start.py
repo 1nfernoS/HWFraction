@@ -103,20 +103,22 @@ def message(msg):
     chat = int(msg['peer_id'])
     user = int(msg['from_id'])
 
-    try:
-        get_user(user)
-    except ValueError:
-        reg_user(user, time-1)
-        if user == settings.creator:
-            set_role(user, 0)
-            vk_api.send(user, "You became a creator")
+    if user > 0:
+        try:
+            get_user(user)
+        except ValueError:
+            reg_user(user, time-1)
+            if user == settings.creator:
+                set_role(user, 0)
+                vk_api.send(user, "You became a creator")
 
-    if time == get_msg(user):
-        vk_api.send(chat, "2fast4me")
-        return
+        if time == get_msg(user):
+            vk_api.send(chat, "2fast4me")
+            return
+        else:
+            update_msg(user, time)
     else:
-        update_msg(user, time)
-
+        return
     # keyboards
     if 'payload' in msg.keys():
         payload = json.loads(msg['payload'])
@@ -160,6 +162,7 @@ def message(msg):
             vk_api.send(chat, '\"/' + str(command[0]) + '\" not in list')
             return
         return
+    return
 
 
 if __name__ == '__main__':

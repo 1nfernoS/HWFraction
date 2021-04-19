@@ -8,8 +8,8 @@ __pycache__/
 
 .idea/
 OLDmain.py
-Msg Examples/
 settings.py
+Msg Examples/
 
 # Distribution / packaging
 .Python

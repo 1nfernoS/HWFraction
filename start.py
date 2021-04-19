@@ -1,13 +1,14 @@
-import traceback
+from traceback import format_exc
 from json import JSONDecodeError
+from flask import Flask, request, json, make_response
 from threading import Thread
+import flask
 
-from db.users import get_msg, update_msg, get_user, reg_user
+from db.users import get_msg, update_msg, get_user, reg_user, set_role
 import settings
 import vk_api
-import flask
-from flask import Flask, request, json, make_response
 import commands
+import payloads
 
 # -+ distribution
 # + targets
@@ -45,7 +46,7 @@ app = Flask(__name__)
 #   6.QoL
 #       6.1 Pinned message in chats
 #       6.2 Profile message
-#       6.3 Employee list
+#       +- 6.3 Employee list
 
 
 @app.route('/')
@@ -91,7 +92,7 @@ def handler():
 
 @app.errorhandler(500)
 def internal_error(*args):
-    vk_api.send(settings.errors, str(traceback.format_exc(-5)))
+    vk_api.send(settings.errors, str(format_exc(-5)))
     return make_response('ok', 200)
 
 
@@ -106,12 +107,21 @@ def message(msg):
         get_user(user)
     except ValueError:
         reg_user(user, time-1)
+        if user == settings.creator:
+            set_role(user, 0)
+            vk_api.send(user, "You became a creator")
 
     if time == get_msg(user):
         vk_api.send(chat, "2fast4me")
         return
     else:
         update_msg(user, time)
+
+    # keyboards
+    if 'payload' in msg.keys():
+        payload = json.loads(msg['payload'])
+        payloads.start(msg, payload)
+        return
 
     # forwards
     if len(msg['fwd_messages']) != 0 and text == '':

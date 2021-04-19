@@ -113,8 +113,6 @@ def role(**kwargs):
 def role_list(**kwargs):
     roles = [0]
 
-    print(kwargs['msg'])
-
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
         return

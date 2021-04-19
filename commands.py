@@ -35,17 +35,20 @@ def user(**kwargs):
             msg = ''
             for i in squad_users:
                 msg = msg + '[id' + str(i) + '|' + str(squad_users[i]) + ']\n'
-            vk_api.send(kwargs['chat'], msg)
+            if msg == '':
+                vk_api.send(kwargs['chat'], "Empty...")
+            else:
+                vk_api.send(kwargs['chat'], msg)
             return
         elif len(cmd) == 1:
-            leaders = dict()
-            for i in squads.get_squads():
-                for j in squads.get_leaders(i):
-                    leaders[j] = i
+            leaders = users.user_list()
             msg = ''
             for i in leaders:
-                msg = msg + '[id' + str(i) + '|' + users.get_profile(i)['nickname'] + ']: ' + leaders[i] + '\n'
-            vk_api.send(kwargs['chat'], msg)
+                msg = msg + '[id' + str(i) + '|' + users.get_profile(i)['nickname'] + ']: ' + str(leaders[i]) + '\n'
+            if msg == '':
+                vk_api.send(kwargs['chat'], "Empty...")
+            else:
+                vk_api.send(kwargs['chat'], msg)
             return
         else:
             # TODO
@@ -56,7 +59,10 @@ def user(**kwargs):
         msg = ''
         for i in squad_users:
             msg = msg + '[id' + str(i) + '|' + str(squad_users[i]) + ']\n'
-        vk_api.send(kwargs['chat'], msg)
+        if msg == '':
+            vk_api.send(kwargs['chat'], "Empty...")
+        else:
+            vk_api.send(kwargs['chat'], msg)
     return
 
 
@@ -97,7 +103,7 @@ def role(**kwargs):
         vk_api.send(kwargs['chat'], "Wrong role id")
         return
     if users.count_role(role_id) < role_limit[role_id]:
-        users.set_role(user_id, kwargs['role_id'])
+        users.set_role(user_id, role_id)
         vk_api.send(kwargs['chat'], "Role set!")
     else:
         vk_api.send(kwargs['chat'], "Limit of Role!")
@@ -106,6 +112,8 @@ def role(**kwargs):
 
 def role_list(**kwargs):
     roles = [0]
+
+    print(kwargs['msg'])
 
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
@@ -133,6 +141,32 @@ def ping(**kwargs):
 
 def test(**kwargs):
     vk_api.send(kwargs['chat'], kwargs['msg'])
+    return
+
+
+def delete(**kwargs):
+    roles = [0]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    if 'reply_message' in kwargs['msg'].keys():
+        user_id = kwargs['msg']['reply_message']['from_id']
+    else:
+        if len(kwargs['msg']['fwd_messages']) == 1:
+            user_id = kwargs['msg']['fwd_messages'][0]['from_id']
+        else:
+            vk_api.send(kwargs['chat'], "No reply or wrong forward")
+            return
+
+    if user_id < 0:
+        vk_api.send(kwargs['chat'], "Only users can have roles")
+        return
+
+    users.del_user(user_id)
+    users.reg_user(user_id, kwargs['msg']['date'])
+
     return
 
 

@@ -1,8 +1,9 @@
 import vk
 import random
-from settings import *
+from settings import token
 import json
 
+"""
 api = vk.API(vk.Session(), v='5.126')
 
 
@@ -20,4 +21,14 @@ def send(user_id, msg, kbd=None):
                           random_id=random.getrandbits(64),
                           message=str(msg)
                           )
-    return None
+    return 
+"""
+
+
+# TODO: return to normal
+def send(user_id, msg, kbd=None):
+    if kbd:
+        print(str(user_id) + ':\n' + str(msg) + ',\n kbd: True')
+    else:
+        print(str(user_id) + ':\n' + str(msg))
+

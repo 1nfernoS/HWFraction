@@ -16,6 +16,22 @@ def start(msg, command):
     return
 
 
+def cmd_list(**kwargs):
+    roles = [0]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    cmd = list(globals())[15:-1]
+    msg = 'There are ' + str(len(cmd)) + ' commands:\n'
+    for i in cmd:
+        msg = msg + i + '\n'
+    vk_api.send(kwargs['chat'], msg)
+
+    return
+
+
 def user(**kwargs):
     roles = [0, 1, 3, 5, 7]
 
@@ -41,10 +57,13 @@ def user(**kwargs):
                 vk_api.send(kwargs['chat'], msg)
             return
         elif len(cmd) == 1:
-            leaders = users.user_list()
+            leaders = list()
+            for squad in squads.get_squads():
+                for lead in squads.get_leaders(squad):
+                    leaders.append(lead)
             msg = ''
             for i in leaders:
-                msg = msg + '[id' + str(i) + '|' + users.get_profile(i)['nickname'] + ']: ' + str(leaders[i]) + '\n'
+                msg = msg + '[id' + str(i) + '|' + users.get_profile(i)['nickname'] + ']: ' + str(users.get_role(i)) + '\n'
             if msg == '':
                 vk_api.send(kwargs['chat'], "Empty...")
             else:
@@ -358,3 +377,8 @@ def target(**kwargs):
         hw_api.set_target(source, cmd[1])
         vk_api.send(kwargs['chat'], "target sent!")
         return
+
+
+def dist(msg):
+    hw_api.distribute(msg)
+    return

@@ -146,7 +146,8 @@ def message(msg):
                 else:
                     vk_api.send(chat, "Error in forwards")
                     return
-            vk_api.send(chat, dist)
+            commands.dist(dist)
+            vk_api.send(chat, "Done")
             return
         return
 
@@ -156,7 +157,10 @@ def message(msg):
         command[0] = command[0].replace('/', '')
         if command[0] in dir(commands):
             # vk_api.send(chat, '\"/' + str(command[0])+'\" in list')
-            commands.start(msg, command[0])
+            try:
+                commands.start(msg, command[0])
+            except TypeError:
+                vk_api.send(chat, '\"/' + str(command[0]) + '\" not in list')
             # need to call somehow
         else:
             vk_api.send(chat, '\"/' + str(command[0]) + '\" not in list')

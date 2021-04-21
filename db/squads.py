@@ -7,7 +7,10 @@ def get_token(source):
     db, cursor = db_open()
 
     if type(source) != str:
-        raise TypeError("Source should be str type")
+        try:
+            source = str(source)
+        except ValueError:
+            raise TypeError("Source should be str type")
     elif len(source) > 2:
         raise ValueError("Source length should be less or equal 2 symbols")
     source = source.upper()
@@ -51,13 +54,19 @@ def reg_squad(source, token):
     db, cursor = db_open()
 
     if type(source) != str:
-        raise TypeError("Source should be str type")
+        try:
+            source = str(source)
+        except ValueError:
+            raise TypeError("Source should be str type")
     elif len(source) > 2:
         raise ValueError("Source's length should be less or equal 2 symbols")
     source = source.upper()
 
     if type(token) != str:
-        raise TypeError("Token should be str type")
+        try:
+            token = str(token)
+        except ValueError:
+            raise TypeError("Token should be str type")
     elif len(token) != 128:
         raise ValueError("Token's length should be equal 128")
 
@@ -80,7 +89,10 @@ def set_chat(source, id_chat):
     db, cursor = db_open()
 
     if type(source) != str:
-        raise TypeError("Source should be str type")
+        try:
+            source = str(source)
+        except ValueError:
+            raise TypeError("Source should be str type")
     elif len(source) > 2:
         raise ValueError("Source's length should be less or equal 2 symbols")
     source = source.upper()
@@ -91,7 +103,10 @@ def set_chat(source, id_chat):
         raise NameError("There is no \'" + source + "\' squad")
 
     if type(id_chat) != int:
-        raise TypeError("Chat Id should be int type")
+        try:
+            id_chat = int(id_chat)
+        except ValueError:
+            raise TypeError("Chat Id should be int type")
     elif 0 > id_chat > 2000000000:
         raise ValueError("Chat Id should have positive value less than 2000000000")
 
@@ -110,7 +125,10 @@ def get_leaders(source):
     leaders = list()
 
     if type(source) != str:
-        raise TypeError("Source should be str type")
+        try:
+            source = str(source)
+        except ValueError:
+            raise TypeError("Source should be str type")
     elif len(source) > 2:
         raise ValueError("Source's length should be less or equal 2")
     source = source.upper()
@@ -129,7 +147,10 @@ def get_leaders(source):
 
 def squad_users(source):
     if type(source) != str:
-        raise TypeError("Source should be str type")
+        try:
+            source = str(source)
+        except ValueError:
+            raise TypeError("Source should be str type")
     elif len(source) > 2:
         raise ValueError("Source's length should be less or equal 2")
     source = source.upper()
@@ -152,7 +173,10 @@ def squad_users(source):
 
 def set_target(source, target, timer):
     if type(source) != str:
-        raise TypeError("Source should be str type")
+        try:
+            source = str(source)
+        except ValueError:
+            raise TypeError("Source should be str type")
     elif len(source) > 2:
         raise ValueError("Source's length should be less or equal 2")
     source = source.upper()
@@ -170,12 +194,18 @@ def set_target(source, target, timer):
         raise NameError("There is no \'" + source + "\' squad")
 
     if type(target) != int:
-        raise TypeError("Target should be int type")
+        try:
+            target = int(target)
+        except ValueError:
+            raise TypeError("Target should be int type")
     elif target == fraction or target < 0 or target > 7:
         raise ValueError("Target should have positive value less than 8 and not your fraction itself")
 
     if type(timer) != int:
-        raise TypeError("Time should be int type")
+        try:
+            timer = int(timer)
+        except ValueError:
+            raise TypeError("Time should be int type")
     elif timer < int(time.time()):
         raise ValueError("Time should have greater value than now (unix)")
 
@@ -193,7 +223,10 @@ def set_target(source, target, timer):
 
 def del_squad(source):
     if type(source) != str:
-        raise TypeError("Source should be str type")
+        try:
+            source = str(source)
+        except ValueError:
+            raise TypeError("Source should be str type")
     elif len(source) > 2:
         raise ValueError("Source's length should be less or equal 2 symbols")
     source = source.upper()

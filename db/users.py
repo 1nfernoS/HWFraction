@@ -8,12 +8,18 @@ from db.squads import get_squads
 
 def reg_user(user_id, last_msg_time):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(last_msg_time) != int:
-        raise TypeError("Time should be int type")
+        try:
+            last_msg_time = int(last_msg_time)
+        except ValueError:
+            raise TypeError("Time should be int type")
     elif last_msg_time > int(time.time()):
         raise ValueError("Time should have lesser value than now (unix)")
 
@@ -56,7 +62,10 @@ def user_list():
 
 def get_user(user_id):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -96,7 +105,10 @@ def get_user(user_id):
 
 def del_user(user_id):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -120,7 +132,10 @@ def del_user(user_id):
 
 def count_role(role_id):
     if type(role_id) != int:
-        raise TypeError("Role Id should be int type")
+        try:
+            role_id = int(role_id)
+        except ValueError:
+            raise TypeError("Role Id should be int type")
     elif role_id < 0 or role_id > 13:
         raise ValueError("Role Id should be positive and less or equal 13")
 
@@ -137,12 +152,18 @@ def count_role(role_id):
 
 def set_role(user_id, role):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(role) != int:
-        raise TypeError("Role should be int type")
+        try:
+            role = int(role)
+        except ValueError:
+            raise TypeError("Role Id should be int type")
     if role < 0 or role > 13:
         raise ValueError("Role Id must be in 0-13")
 
@@ -176,7 +197,10 @@ def get_roles():
 
 def get_role(user_id):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -197,7 +221,10 @@ def get_role(user_id):
 
 def get_preferences(user_id):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -227,7 +254,10 @@ def get_preferences(user_id):
 
 def get_msg(user_id):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -249,7 +279,10 @@ def get_msg(user_id):
 
 def update_msg(user_id, msg_time):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -259,7 +292,10 @@ def update_msg(user_id, msg_time):
         raise error
 
     if type(msg_time) != int:
-        raise TypeError("Time should be int type")
+        try:
+            msg_time = int(msg_time)
+        except ValueError:
+            raise TypeError("Time should be int type")
     elif msg_time > int(time.time()):
         raise ValueError("Time should have lesser value than now (unix)")
 
@@ -279,12 +315,18 @@ def change_preferences(user_id, preference):
     columns = get_columns('tPreferences')[2:-1]
 
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(preference) != str:
-        raise TypeError("Preference should be str type")
+        try:
+            preference = str(preference)
+        except ValueError:
+            raise TypeError("Preference should be str type")
     if preference not in columns:
         raise ValueError("There is no option \'"+preference+"\'")
 
@@ -306,12 +348,18 @@ def get_preference(user_id, preference):
     columns = get_columns('tPreferences')[2:-1]
 
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(preference) != str:
-        raise TypeError("Preference should be str type")
+        try:
+            preference = str(preference)
+        except ValueError:
+            raise TypeError("Preference should be str type")
     if preference not in columns:
         raise ValueError("There is no option \'" + preference + "\'")
 
@@ -328,7 +376,10 @@ def get_preference(user_id, preference):
 
 def get_squad(user_id):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -346,16 +397,25 @@ def get_squad(user_id):
 
 def set_profile(user_id, nick, source, practice, theory, guile, wisdom):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(nick) != str:
-        raise TypeError("Nickname must be str type")
+        try:
+            nick = str(nick)
+        except ValueError:
+            raise TypeError("Nickname must be str type")
 
     if source is not None:
         if type(source) != str:
-            raise TypeError("Source should be str type")
+            try:
+                source = str(source)
+            except ValueError:
+                raise TypeError("Source should be str type")
         elif len(source) > 2:
             raise ValueError("Source length should be less or equal 2")
         source = source.upper()
@@ -364,19 +424,31 @@ def set_profile(user_id, nick, source, practice, theory, guile, wisdom):
             raise ValueError("There is no squad \"" + source + "\". Try to reg squad first")
 
     if type(practice) != int:
-        raise TypeError("Practice should be int type")
+        try:
+            practice = int(practice)
+        except ValueError:
+            raise TypeError("Practice should be int type")
     elif practice < 0:
         raise ValueError("Practice should be positive")
     if type(theory) != int:
-        raise TypeError("Theory should be int type")
+        try:
+            theory = int(theory)
+        except ValueError:
+            raise TypeError("Theory should be int type")
     elif theory < 0:
         raise ValueError("Theory should be positive")
     if type(guile) != int:
-        raise TypeError("Guile should be int type")
+        try:
+            guile = int(guile)
+        except ValueError:
+            raise TypeError("Guile should be int type")
     elif guile < 0:
         raise ValueError("Guile should be positive")
     if type(wisdom) != int:
-        raise TypeError("Wisdom should be int type")
+        try:
+            wisdom = int(wisdom)
+        except ValueError:
+            raise TypeError("Wisdom should be int type")
     elif wisdom < 0:
         raise ValueError("Wisdom should be positive")
 
@@ -404,7 +476,10 @@ def set_profile(user_id, nick, source, practice, theory, guile, wisdom):
 
 def get_profile(user_id):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -431,22 +506,34 @@ def get_profile(user_id):
 
 def set_report(user_id, date, income, pure_income):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(date) != int:
-        raise TypeError("Time should be int type")
+        try:
+            date = int(date)
+        except ValueError:
+            raise TypeError("Time should be int type")
     elif date > int(time.time()):
         raise ValueError("Time should have smaller value than now (unix)")
     date = datetime.date.fromtimestamp(date)
 
     if type(income) != int:
-        raise TypeError("Income should be int type")
+        try:
+            income = int(income)
+        except ValueError:
+            raise TypeError("Income should be int type")
     elif income < 0:
         raise ValueError("Income should be positive")
     if type(pure_income) != int:
-        raise TypeError("Pure income should be int type")
+        try:
+            pure_income = int(pure_income)
+        except ValueError:
+            raise TypeError("Pure income should be int type")
     elif pure_income < 0:
         raise ValueError("pure income should be positive")
 
@@ -475,7 +562,10 @@ def set_report(user_id, date, income, pure_income):
 
 def get_report(user_id):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -502,17 +592,27 @@ def get_report(user_id):
 
 def set_discipline(user_get, user_set, reason, date):
     if type(user_get) != int or type(user_set) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_get = int(user_get)
+            user_set = int(user_set)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_get < 0 or user_get >= 2000000000 or user_set < 0 or user_set >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(reason) != str:
-        raise TypeError("Reason should be str type")
+        try:
+            reason = str(reason)
+        except ValueError:
+            raise TypeError("Reason should be str type")
     elif len(reason) > 100:
         raise ValueError("Reason should be less or equal 100 symbols")
 
     if type(date) != int:
-        raise TypeError("Time should be int type")
+        try:
+            date = int(date)
+        except ValueError:
+            raise TypeError("Time should be int type")
     elif date <= int(time.time()):
         raise ValueError("Time should have greater value than now (unix)")
 
@@ -530,7 +630,10 @@ def set_discipline(user_get, user_set, reason, date):
 
 def get_discipline(user_id):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
@@ -558,12 +661,18 @@ def get_discipline(user_id):
 
 def del_discipline(user_id, count=1):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(count) != int:
-        raise TypeError("Number should be int type")
+        try:
+            count = int(count)
+        except ValueError:
+            raise TypeError("Number should be int type")
     elif count < 0:
         raise ValueError("Number should be positive")
 
@@ -581,19 +690,28 @@ def del_discipline(user_id, count=1):
 
 def set_data(user_id, tag, text):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(tag) != str:
-        raise TypeError("Tag should be str type")
+        try:
+            tag = str(tag)
+        except ValueError:
+            raise TypeError("Tag should be str type")
     elif len(tag) > 20:
         raise ValueError("Tag's length should be less than 20 symbols")
     if get_data(user_id, tag) is not None:
         raise NameError("You already have text with tag \"" + tag + "\"")
 
     if type(text) != str:
-        raise TypeError("Text should be str type")
+        try:
+            text = str(text)
+        except ValueError:
+            raise TypeError("Text should be str type")
 
     data = (user_id, tag, text)
     query = 'INSERT INTO tData VALUE (%s, %s, %s);'
@@ -609,12 +727,18 @@ def set_data(user_id, tag, text):
 
 def get_data(user_id, tag):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
     if type(tag) != str:
-        raise TypeError("Tag should be str type")
+        try:
+            tag = str(tag)
+        except ValueError:
+            raise TypeError("Tag should be str type")
     elif len(tag) > 20:
         raise ValueError("Tag's length should be less than 20 symbols")
 
@@ -638,16 +762,23 @@ def get_data(user_id, tag):
 
 def del_data(user_id, tag):
     if type(user_id) != int:
-        raise TypeError("User Id should be int type")
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            raise TypeError("User Id should be int type")
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
-    if get_data(user_id, tag) is None:
-        raise NameError("Tag \"" + tag + "\" doesn't exist")
 
     if type(tag) != str:
-        raise TypeError("Tag should be str type")
+        try:
+            tag = str(tag)
+        except ValueError:
+            raise TypeError("Tag should be str type")
     elif len(tag) > 20:
         raise ValueError("Tag's length should be less than 20 symbols")
+
+    if get_data(user_id, tag) is None:
+        raise NameError("Tag \"" + tag + "\" doesn't exist")
 
     data = (user_id, tag)
     query = 'DELETE FROM tData WHERE cIdUser = %s AND cTag = %s;'

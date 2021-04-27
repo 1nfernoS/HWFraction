@@ -1,3 +1,8 @@
+"""
+This is main connector to database. Main functions are db_open and db_close.
+But there is some useful functions if you want to add some functions and you need to work with database.
+(c) Misden a.k.a. 1nfernos, 2021
+"""
 import mysql.connector as sql
 from settings import db_data
 

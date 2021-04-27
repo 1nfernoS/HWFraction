@@ -1,3 +1,11 @@
+"""
+This module works with player's entity in database - mainly in 3 tables, which contains main info
+If you want to work with all entity - use vUser view. Remember, this will work with SELECT statements only.
+Make different def-s to INSERT, DELETE and SELECT, and don't forget to have all 3 def-s (if it needed)
+Don't forget to try convert data type (for simplify errors)
+    and check data type for excepting MySQL Errors (Trust me, you don't want to drop database)
+(c) Misden a.k.a. 1nfernos, 2021
+"""
 import datetime
 import time
 

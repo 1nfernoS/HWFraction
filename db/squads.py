@@ -1,3 +1,11 @@
+"""
+This module works with squad's entity in database - 1 table, but sometimes have link to profile
+Remember, this module just works with database, don't append here other code (i.e. checking timer for attack etc)
+Make different def-s to INSERT, DELETE and SELECT, and don't forget to have all 3 def-s (if it needed)
+Don't forget to try convert data type (for simplify errors)
+    and check data type for excepting MySQL Errors (Trust me, you don't want to drop database)
+(c) Misden a.k.a. 1nfernos, 2021
+"""
 from db.db_sql import db_open, db_close
 from settings import fraction
 import time

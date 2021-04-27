@@ -1,3 +1,12 @@
+"""
+This module handles all commands (messages without payload and starting with '/' or other prefix.
+All commands should have single def and have same name like prefix-command (i.e. /ping calls def 'ping').
+For saving structure, call 'start' method with command name. If you want, you can refactor it into class.
+Add new def-s after 'cmd_list' and before 'dist'. This will keep 'cmd_list' work properly
+If you want to expand imports, don't forget to increase cmd_list's globals start value by count of new imports.
+You can not following this recommendations, but in this case you all doing at your owh risk
+(c) Misden a.k.a. 1nfernoS, 2021
+"""
 from threading import Thread
 
 import vk_api

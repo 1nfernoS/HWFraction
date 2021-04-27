@@ -1,14 +1,19 @@
+"""
+This is initial module. Here we take request and handle it.
+Also there is basic checking of structure to avoid unauthorized requests
+Of course, it isn't secure, but it will not fall after bad request
+(c) Misden a.k.a. 1nfernos, 2021
+"""
 from traceback import format_exc
 from json import JSONDecodeError
 from flask import Flask, request, json, make_response
-from threading import Thread
 import flask
 
 from db.users import get_msg, update_msg, get_user, reg_user, set_role
 import settings
 import vk_api
 import commands
-import payloads
+from payloads import start as payload
 
 # -+ distribution
 # + targets
@@ -121,8 +126,8 @@ def message(msg):
         return
     # keyboards
     if 'payload' in msg.keys():
-        payload = json.loads(msg['payload'])
-        payloads.start(msg, payload)
+        pl = json.loads(msg['payload'])
+        payload(msg, pl)
         return
 
     # forwards

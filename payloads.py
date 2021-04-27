@@ -1,3 +1,7 @@
+"""
+This module handles all payload data. I don't sure how it will be in the end, but now we have description ^^
+(c) Misden a.k.a. 1nfernoS, 2021
+"""
 import vk_api
 from hw_api import set_target
 from settings import fraction

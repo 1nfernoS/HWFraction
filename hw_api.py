@@ -1,3 +1,10 @@
+"""
+This module works with HW API and other requests related to HW (i.e. distribution results of battle)
+Don't forget to check settings and url's
+Remember that all requests will take some time, so VK may send another request.
+You can use threads to call this functions
+(c) Misden a.k.a. 1nfernos, 2021
+"""
 import requests
 
 from db.squads import get_token, get_squads

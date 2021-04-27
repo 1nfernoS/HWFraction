@@ -1,3 +1,8 @@
+"""
+This module works with VK API.
+There is not much def-s, but you can add any method from https://vk.com/dev/callback_api
+(c) Misden a.k.a. 1nfernos, 2021
+"""
 import vk
 from settings import token, debug
 import json

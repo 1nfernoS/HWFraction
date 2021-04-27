@@ -2,7 +2,7 @@ from threading import Thread
 
 import vk_api
 import hw_api
-from settings import fraction
+from settings import fraction, start_time
 
 import db.users as users
 import db.squads as squads
@@ -152,7 +152,7 @@ def ping(**kwargs):
         vk_api.send(kwargs['chat'], "Access Denied")
         return
 
-    vk_api.send(kwargs['chat'], "Still Alive")
+    vk_api.send(kwargs['chat'], "Still Alive from " + str(int(start_time)))
     return
 
 
@@ -290,8 +290,6 @@ def reg_squad(**kwargs):
 
 def target(**kwargs):
     roles = [0, 1, 3, 5, 7]
-    # TODO
-    # in multiThreading
 
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
@@ -323,7 +321,7 @@ def target(**kwargs):
                 vk_api.send(kwargs['chat'], 'Wrong target')
                 return
 
-            hw_api.set_target(cmd[1], cmd[2])
+            Thread(target=hw_api.set_target, args=(cmd[1], cmd[2])).run()
             vk_api.send(kwargs['chat'], "Target sent!")
             return
 
@@ -344,7 +342,7 @@ def target(**kwargs):
                 vk_api.send(kwargs['chat'], 'Wrong target')
                 return
 
-            hw_api.set_target(str(fraction), cmd[1])
+            Thread(target=hw_api.set_target, args=(str(fraction), cmd[1])).run()
             vk_api.send(kwargs['chat'], "target sent!")
             return
 
@@ -374,11 +372,11 @@ def target(**kwargs):
             return
 
         source = users.get_squad(kwargs['msg']['from_id'])
-        hw_api.set_target(source, cmd[1])
+        Thread(target=hw_api.set_target(), args=(source, cmd[1])).run()
         vk_api.send(kwargs['chat'], "target sent!")
         return
 
 
 def dist(msg):
-    hw_api.distribute(msg)
+    Thread(target=hw_api.distribute, args=(msg,)).run()
     return

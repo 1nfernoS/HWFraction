@@ -39,7 +39,7 @@ def distribute(msg="test"):
     params_dist['message']['message'] = msg
 
     if debug:
-        print("request to " + url + " with " + str(params))
+        print("request to " + url_dist + " with " + str(params_dist))
     else:
         requests.post(url_dist, json=params_dist)
     return

@@ -12,8 +12,10 @@ import flask
 from db.users import get_msg, update_msg, get_user, reg_user, set_role
 import settings
 import vk_api
-import commands
+from commands import cmd
+from commands import start as commands
 from payloads import start as payload
+from forwards import parse as forwards
 
 # -+ distribution
 # + targets
@@ -97,7 +99,7 @@ def handler():
 
 @app.errorhandler(500)
 def internal_error(*args):
-    vk_api.send(settings.errors, str(format_exc(-5)))
+    vk_api.send(settings.errors_chat, str(format_exc(-5)))
     return make_response('ok', 200)
 
 
@@ -124,6 +126,7 @@ def message(msg):
             update_msg(user, time)
     else:
         return
+
     # keyboards
     if 'payload' in msg.keys():
         pl = json.loads(msg['payload'])
@@ -133,40 +136,19 @@ def message(msg):
     # forwards
     if len(msg['fwd_messages']) != 0 and text == '':
         fwd = msg['fwd_messages']
-        # if 1 without anything, return time (for now)
-        if len(fwd) == 1:
-            try:
-                fwd_time = str(msg['fwd_messages'][0]['fwd_messages'][0]['date']) + '\n'
-            except KeyError:
-                fwd_time = str(msg['fwd_messages'][0]['date']) + '\n'
-
-            vk_api.send(chat, str(fwd_time))
-            return
-        # 6 msg for fractions and 1 for results. Must be bot id
-        if len(fwd) == 7:
-            dist = ''
-            for i in range(7):
-                if fwd[i]['from_id'] == -172959149:
-                    dist += str(fwd[i]['text']).replace('\n\n', '\n') + '\n\n'
-                else:
-                    vk_api.send(chat, "Error in forwards")
-                    return
-            commands.dist(dist)
-            vk_api.send(chat, "Done")
-            return
+        forwards(msg, fwd)
         return
 
     # commands
     if msg['text'].startswith('/'):
         command = msg['text'].split()
         command[0] = command[0].replace('/', '')
-        if command[0] in dir(commands):
+        if command[0] in cmd():
             # vk_api.send(chat, '\"/' + str(command[0])+'\" in list')
             try:
-                commands.start(msg, command[0])
+                commands(msg, command[0])
             except TypeError:
                 vk_api.send(chat, '\"/' + str(command[0]) + '\" not in list')
-            # need to call somehow
         else:
             vk_api.send(chat, '\"/' + str(command[0]) + '\" not in list')
             return

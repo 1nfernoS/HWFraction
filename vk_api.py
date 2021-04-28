@@ -22,12 +22,14 @@ def send(user_id, msg, kbd=None):
                           peer_id=str(user_id),
                           random_id=0,
                           message=str(msg),
-                          keyboard=json.dumps(kbd)
+                          keyboard=json.dumps(kbd),
+                          disable_mentions=True
                           )
     else:
         api.messages.send(access_token=token,
                           peer_id=str(user_id),
                           random_id=0,
-                          message=str(msg)
+                          message=str(msg),
+                          disable_mentions=True
                           )
     return

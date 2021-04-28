@@ -2,7 +2,7 @@
 This module handles all commands (messages without payload and starting with '/' or other prefix.
 All commands should have single def and have same name like prefix-command (i.e. /ping calls def 'ping').
 For saving structure, call 'start' method with command name. If you want, you can refactor it into class.
-Add new def-s after 'cmd_list' and before 'dist'. This will keep 'cmd_list' work properly
+Add new def-s after 'cmd_list'. This will keep 'cmd_list' work properly
 If you want to expand imports, don't forget to increase cmd_list's globals start value by count of new imports.
 You can not following this recommendations, but in this case you all doing at your owh risk
 (c) Misden a.k.a. 1nfernoS, 2021
@@ -25,6 +25,10 @@ def start(msg, command):
     return
 
 
+def cmd(**kwargs):
+    return list(globals())[17:]
+
+
 def cmd_list(**kwargs):
     roles = [0]
 
@@ -32,9 +36,9 @@ def cmd_list(**kwargs):
         vk_api.send(kwargs['chat'], "Access Denied")
         return
 
-    cmd = list(globals())[15:-1]
-    msg = 'There are ' + str(len(cmd)) + ' commands:\n'
-    for i in cmd:
+    com_list = cmd()
+    msg = 'There are ' + str(len(com_list)) + ' commands:\n'
+    for i in com_list:
         msg = msg + i + '\n'
     vk_api.send(kwargs['chat'], msg)
 
@@ -213,7 +217,7 @@ def kbda(**kwargs):
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
         return
-    Thread(target=hw_api.remove_all).run()
+    Thread(target=hw_api.remove_all).start()
     vk_api.send(kwargs['chat'], "Keyboards are removed")
     return
 
@@ -330,7 +334,7 @@ def target(**kwargs):
                 vk_api.send(kwargs['chat'], 'Wrong target')
                 return
 
-            Thread(target=hw_api.set_target, args=(cmd[1], cmd[2])).run()
+            Thread(target=hw_api.set_target, args=(cmd[1], cmd[2])).start()
             vk_api.send(kwargs['chat'], "Target sent!")
             return
 
@@ -351,7 +355,7 @@ def target(**kwargs):
                 vk_api.send(kwargs['chat'], 'Wrong target')
                 return
 
-            Thread(target=hw_api.set_target, args=(str(fraction), cmd[1])).run()
+            Thread(target=hw_api.set_target, args=(str(fraction), cmd[1])).start()
             vk_api.send(kwargs['chat'], "target sent!")
             return
 
@@ -381,11 +385,6 @@ def target(**kwargs):
             return
 
         source = users.get_squad(kwargs['msg']['from_id'])
-        Thread(target=hw_api.set_target(), args=(source, cmd[1])).run()
+        Thread(target=hw_api.set_target(), args=(source, cmd[1])).start()
         vk_api.send(kwargs['chat'], "target sent!")
         return
-
-
-def dist(msg):
-    Thread(target=hw_api.distribute, args=(msg,)).run()
-    return

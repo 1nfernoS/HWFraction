@@ -21,22 +21,19 @@ def parse(msg, fwd):
     if len(fwd) == 1:
         # check some things
         if fwd[0]['from_id'] == hw_id:
-            txt = str(fwd[0]['text'])
+            txt = str(fwd[0]['text']).encode('ascii', 'xmlcharrefreplace').decode('ascii')
             battle_flag = 'Результаты битвы за' in txt
-            profile_flag = '&#128181;' in txt or '💵' in txt  # money emoji
-            share_flag = '&#128187;' in txt or '💻' in txt  # lvl emoji / notebook emoji
-            inventory_flag = '&#127890;' in txt or '🎒' in txt  # backpack emoji
-            vk_api.send(errors_chat, "@id" + str(user_id) + " sent forward from hw, battle: " + str(battle_flag) +
-                        ", profile: " + str(profile_flag) + ", share: " + str(share_flag) + ", inventory: " +
-                        str(inventory_flag))
+            profile_flag = '&#128181;' in txt  # money emoji
+            share_flag = '&#128187;' in txt  # lvl emoji / notebook emoji
+            inventory_flag = '&#127890;' in txt  # backpack emoji
             if battle_flag:
                 print("forward with battle")
             elif inventory_flag:
                 return
             elif profile_flag:
-                profile(user_id, fwd[0]['text'])
+                profile(user_id, txt)
             elif share_flag:
-                share(user_id, fwd[0]['text'])
+                share(user_id, txt)
             else:
                 get_time(fwd, chat_id, role_id)
             return
@@ -93,66 +90,47 @@ def distribution(fwd, chat_id, role_id, user_id):
 def share(user_id, text):
 
     # TODO: check share with profile
+    shar = text.split(sep='\n\n')
+
     tl_flag = False
     sl_flag = False
     squad_flag = False
 
-    if text.find(';')+1 > text.find(' ('):
+    # TODO: find a way to correct parse
+    string = shar[0][:shar[0].find('\n')]
+    if string.find(';')+1 > string.find(' ('):
         start = 0
     else:
-        start = text.find(';')+1
-    end = text.find(' (')
-    nick = text[start:end]
-
+        start = string.find(';')+1
+    end = string.find(' (')
+    nick = string[start:end]
+    string = string[string.find('(')+1:string.find(')')]
     sl = '&#9643;'
     tl = '&#128312;'
-    if sl in text:
+    if sl in string:
         sl_flag = True
-    elif tl in text:
+        string = string.replace(sl, '')
+    elif tl in string:
         tl_flag = True
+        string = string.replace(tl, '')
     else:
         pass
 
-    if text.find('|') != -1:
-        if tl_flag:
-            squad = text[text.find(tl) + 9:text.find('|')]
-        elif sl_flag:
-            squad = text[text.find(sl) + 7:text.find('|')]
-        else:
-            squad = text[text.find('(')+1:text.find('|')]
+    if string.find('|') != -1:
+        squad = string[:2]
         squad_flag = True
-
-        start = text.find('|') + 2
-        end = start + text[start:].find(';')
-    else:
-        if tl_flag:
-            start = text.find(tl) + 9
-        else:
-            start = text.find('(') + 1
-
-        end = start + text[start:].find(';')
+        string = string[5:]
 
     # TODO: Do smth with fraction
-    fraction = fractions[text[start:end+1].strip()]
+    frac = string[:string.find(';')+1]
+    fraction = fractions[frac]
 
-    prac = '&#128225;'
-    start = text.find(prac)+11
-    end = start + text[start:].find(';')
-    prac_val = int(text[start:end])
-
-    teo = '&#128190;'
-    start = text.find(teo) + 11
-    end = start + text[start:].find('\n')
-    teo_val = int(text[start:end])
-
-    hit = '&#128241;'
-    start = text.find(hit) + 11
-    end = start + text[start:].find(';')
-    hit_val = int(text[start:end])
-
-    mud = '&#128270;'
-    start = text.find(mud) + 11
-    mud_val = int(text[start:])
+    string = shar[1]
+    stats = string.split(sep='\n')
+    prac_val = int(stats[0].split(sep='; ')[0][stats[0].split(sep='; ')[0].find(':')+2:])
+    teo_val = int(stats[0].split(sep='; ')[1][stats[0].split(sep='; ')[0].find(':')+2:])
+    hit_val = int(stats[1].split(sep='; ')[0][stats[0].split(sep='; ')[0].find(':')+2:])
+    mud_val = int(stats[1].split(sep='; ')[1][stats[0].split(sep='; ')[0].find(':')+2:])
 
     message = str()
     message = message + nick + '\n'
@@ -178,103 +156,53 @@ def share(user_id, text):
 
 def profile(user_id, text):
 
-    if '&#128181;Деньги:' in text:
-        short = False
-    else:
-        short = True
-
-    if short:
-        min_start = text[:-150].rfind('\n\n') + 2
-    else:
-        min_start = text[:-250].rfind('\n\n') + 2
-    text = text[min_start:]
+    prof = text.split(sep='\n\n')[-3:-1]
 
     tl_flag = False
     sl_flag = False
     squad_flag = False
 
     # TODO: find a way to correct parse
-    if text.find(';')+1 > text.find(' ('):
-        min_start = 0
+    string = prof[0][:prof[0].find('\n')]
+    if string.find(';')+1 > string.find(' ('):
+        start = 0
     else:
-        min_start = text.find(';')+1
-    end = text.find(' (')
-    nick = text[min_start:end]
-
+        start = string.find(';')+1
+    end = string.find(' (')
+    nick = string[start:end]
+    string = string[string.find('(')+1:string.find(')')]
     sl = '&#9643;'
     tl = '&#128312;'
-    if sl in text:
+    if sl in string:
         sl_flag = True
-    elif tl in text:
+        string = string.replace(sl, '')
+    elif tl in string:
         tl_flag = True
+        string = string.replace(tl, '')
     else:
         pass
 
-    if text.find('|') != -1:
-        if tl_flag:
-            squad = text[text.find(tl) + 9:text.find('|')]
-        elif sl_flag:
-            squad = text[text.find(sl) + 7:text.find('|')]
-        else:
-            squad = text[text.find('(')+1:text.find('|')]
+    if string.find('|') != -1:
+        squad = string[:2]
         squad_flag = True
-
-        start = text.find('|') + 2
-        end = start + text[start:].find(';')
-    else:
-        if tl_flag:
-            start = text.find(tl) + 9
-        else:
-            start = text.find('(') + 1
-
-        end = start + text[start:].find(';')
+        string = string[5:]
 
     # TODO: Do smth with fraction
-    fraction = fractions[text[start:end+1].strip()]
+    frac = string[:string.find(';')+1]
+    fraction = fractions[frac]
 
-    if short:
-        prac = '&#128225;: '
-        start = text.find(prac)+11
-        end = start + text[start:].find(';')
+    string = prof[1]
+    stats = string.split(sep='\n')
+    if len(stats) == 2:
+        prac_val = int(stats[0].split(sep='; ')[0][stats[0].split(sep='; ')[0].find(':')+2:])
+        teo_val = int(stats[0].split(sep='; ')[1][stats[0].split(sep='; ')[0].find(':')+2:])
+        hit_val = int(stats[1].split(sep='; ')[0][stats[0].split(sep='; ')[0].find(':')+2:])
+        mud_val = int(stats[1].split(sep='; ')[1][stats[0].split(sep='; ')[0].find(':')+2:])
     else:
-        prac = '&#128225;Практика: '
-        start = text.find(prac) + 11
-        start = start + text[start:].find('(') + 1
-        end = start + text[start:].find(')')
-    prac_val = int(text[start:end])
-
-    if short:
-        teo = '&#128190;: '
-        start = text.find(teo) + 11
-        end = start + text[start:].find('\n')
-    else:
-        teo = '&#128190;Теория: '
-        start = text.find(teo) + 11
-        start = start + text[start:].find('(') + 1
-        end = start + text[start:].find(')')
-    teo_val = int(text[start:end])
-
-    if short:
-        hit = '&#128241;: '
-        start = text.find(hit) + 11
-        end = start + text[start:].find(';')
-    else:
-        hit = '&#128241;Хитрость: '
-        start = text.find(hit)
-        start = start + text[start:].find('(') + 1
-        end = start + text[start:].find(')')
-    hit_val = int(text[start:end])
-
-    if short:
-        mud = '&#128270;: '
-        start = text.find(mud) + 11
-        end = start + text[start:].find('\n')
-    else:
-        mud = '&#128270;Мудрость: '
-        start = text.find(mud) + 11
-        start = start + text[start:].find('(') + 1
-        end = start + text[start:].find(')')
-    mud_val = int(text[start:end])
+        prac_val = int(stats[1][stats[1].find('(')+1:stats[1].find(')')])
+        teo_val = int(stats[2][stats[2].find('(')+1:stats[2].find(')')])
+        hit_val = int(stats[3][stats[3].find('(')+1:stats[3].find(')')])
+        mud_val = int(stats[4][stats[4].find('(')+1:stats[4].find(')')])
 
     message = str()
     message = message + nick + '\n'

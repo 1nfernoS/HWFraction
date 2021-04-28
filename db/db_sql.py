@@ -7,6 +7,7 @@ import mysql.connector as sql
 from settings import db_data
 
 
+# TODO: Make db static class
 def db_open():
     db = sql.connect(user=db_data['user'], password=db_data['password'], host=db_data['host'],
                      database=db_data['database'])

@@ -10,12 +10,16 @@ from flask import Flask, request, json, make_response
 import flask
 
 from db.users import get_msg, update_msg, get_user, reg_user, set_role
+
 import settings
-import vk_api
+
 from commands import cmd
 from commands import start as commands
 from payloads import start as payload
 from forwards import parse as forwards
+
+import after_response
+import vk_api
 
 # -+ distribution
 # + targets
@@ -27,6 +31,7 @@ from forwards import parse as forwards
 # chats are 2000000000+
 
 app = Flask(__name__)
+after_response.AfterResponse(app)
 
 # TODO:
 #   0.Structure
@@ -92,7 +97,11 @@ def handler():
 
     if type_msg == 'message_new':
         data_msg = obj_msg['message']
+
+    @app.after_response
+    def after(*args):
         message(data_msg)
+        return
 
     return make_response('ok', 200)
 
@@ -114,7 +123,7 @@ def message(msg):
         try:
             get_user(user)
         except ValueError:
-            reg_user(user, time-1)
+            reg_user(user, time - 1)
             if user == settings.creator:
                 set_role(user, 0)
                 vk_api.send(user, "You became a creator")
@@ -151,7 +160,6 @@ def message(msg):
                 vk_api.send(chat, '\"/' + str(command[0]) + '\" not in list')
         else:
             vk_api.send(chat, '\"/' + str(command[0]) + '\" not in list')
-            return
         return
     return
 

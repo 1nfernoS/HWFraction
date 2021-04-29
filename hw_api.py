@@ -63,5 +63,4 @@ def remove_all():
             print("request to " + url + " with " + str(params))
         else:
             requests.get(url, params)
-
     return

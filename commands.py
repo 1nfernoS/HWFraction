@@ -7,8 +7,6 @@ If you want to expand imports, don't forget to increase cmd_list's globals start
 You can not following this recommendations, but in this case you all doing at your owh risk
 (c) Misden a.k.a. 1nfernoS, 2021
 """
-from threading import Thread
-
 import vk_api
 import hw_api
 from settings import fraction, start_time
@@ -217,7 +215,7 @@ def kbda(**kwargs):
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
         return
-    Thread(target=hw_api.remove_all).start()
+    hw_api.remove_all()
     vk_api.send(kwargs['chat'], "Keyboards are removed")
     return
 
@@ -334,7 +332,7 @@ def target(**kwargs):
                 vk_api.send(kwargs['chat'], 'Wrong target')
                 return
 
-            Thread(target=hw_api.set_target, args=(cmd[1], cmd[2])).start()
+            hw_api.set_target(cmd[1], cmd[2])
             vk_api.send(kwargs['chat'], "Target sent!")
             return
 
@@ -355,7 +353,7 @@ def target(**kwargs):
                 vk_api.send(kwargs['chat'], 'Wrong target')
                 return
 
-            Thread(target=hw_api.set_target, args=(str(fraction), cmd[1])).start()
+            hw_api.set_target(str(fraction), cmd[1])
             vk_api.send(kwargs['chat'], "target sent!")
             return
 
@@ -385,6 +383,6 @@ def target(**kwargs):
             return
 
         source = users.get_squad(kwargs['msg']['from_id'])
-        Thread(target=hw_api.set_target(), args=(source, cmd[1])).start()
+        hw_api.set_target(source, cmd[1])
         vk_api.send(kwargs['chat'], "target sent!")
         return

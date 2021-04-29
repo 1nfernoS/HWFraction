@@ -4,8 +4,6 @@ Now there is not much info, so later I will expand it
 def parse is entry point of module, other def-s are calls from it.
 (c) Misden a.k.a. 1nfernos, 2021
 """
-import threading
-
 from settings import hw_id, errors_chat, fractions
 
 from db.users import get_role
@@ -14,6 +12,7 @@ from hw_api import distribute
 
 
 def parse(msg, fwd):
+    roles = [0]
     user_id = msg['from_id']
     role_id = get_role(user_id)
     chat_id = msg['peer_id']
@@ -21,9 +20,9 @@ def parse(msg, fwd):
     if len(fwd) == 1:
         # check some things
         if fwd[0]['from_id'] == hw_id:
-            txt = str(fwd[0]['text']).encode('ascii', 'xmlcharrefreplace').decode('ascii')
+            txt = str(fwd[0]['text']).encode('cp1251', 'xmlcharrefreplace').decode('cp1251')
             battle_flag = 'Результаты битвы за' in txt
-            profile_flag = '&#128181;' in txt  # money emoji
+            profile_flag = '&#128716;' in txt  # bed emoji
             share_flag = '&#128187;' in txt  # lvl emoji / notebook emoji
             inventory_flag = '&#127890;' in txt  # backpack emoji
             if battle_flag:
@@ -34,7 +33,7 @@ def parse(msg, fwd):
                 profile(user_id, txt)
             elif share_flag:
                 share(user_id, txt)
-            else:
+            elif role_id in roles:
                 get_time(fwd, chat_id, role_id)
             return
         else:
@@ -82,7 +81,7 @@ def distribution(fwd, chat_id, role_id, user_id):
         else:
             vk_api.send(errors_chat, "@id" + str(user_id) + " tried to distribute and have error\nMessage is:\n" + message)
             return
-    threading.Thread(target=distribute, args=(message,)).start()
+    distribute(message)
     vk_api.send(chat_id, "Request to distribute sent!")
     return
 

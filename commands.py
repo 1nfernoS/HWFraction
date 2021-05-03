@@ -24,7 +24,7 @@ def start(msg, command):
 
 
 def cmd(**kwargs):
-    return list(globals())[17:]
+    return list(globals())[16:]
 
 
 def cmd_list(**kwargs):
@@ -36,10 +36,8 @@ def cmd_list(**kwargs):
 
     com_list = cmd()
     msg = 'There are ' + str(len(com_list)) + ' commands:\n'
-    for i in com_list:
-        msg = msg + i + '\n'
+    msg += '\n'.join(com_list)
     vk_api.send(kwargs['chat'], msg)
-
     return
 
 
@@ -386,3 +384,17 @@ def target(**kwargs):
         hw_api.set_target(source, cmd[1])
         vk_api.send(kwargs['chat'], "target sent!")
         return
+
+
+def squad_list(**kwargs):
+
+    roles = [0, 1, 3]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    msg = ', '.join(squads.get_squads())
+
+    vk_api.send(kwargs['chat'], msg)
+    return

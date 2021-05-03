@@ -6,6 +6,7 @@ You can use threads to call this functions
 (c) Misden a.k.a. 1nfernos, 2021
 """
 import requests
+import time
 
 from db.squads import get_token, get_squads
 from settings import fraction, debug
@@ -23,6 +24,7 @@ def set_target(name, target):
     params["token"] = get_token(name)
 
     if debug:
+        time.sleep(2)
         print("request to " + url + " with " + str(params))
     else:
         requests.get(url, params)
@@ -36,6 +38,7 @@ def check(name, token):
     print("request to " + url + " with " + str(params))
 
     if debug:
+        time.sleep(2)
         return True
     else:
         r = requests.get(url, params)
@@ -60,6 +63,7 @@ def remove_all():
         params["token"] = get_token(src)
 
         if debug:
+            time.sleep(2)
             print("request to " + url + " with " + str(params))
         else:
             requests.get(url, params)

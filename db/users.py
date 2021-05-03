@@ -6,6 +6,7 @@ Don't forget to try convert data type (for simplify errors)
     and check data type for excepting MySQL Errors (Trust me, you don't want to drop database)
 (c) Misden a.k.a. 1nfernos, 2021
 """
+from mysql.connector.errors import IntegrityError
 import datetime
 import time
 
@@ -37,13 +38,22 @@ def reg_user(user_id, last_msg_time):
 
     db, cursor = db_open()
 
-    cursor.execute(query, data)
-    db.commit()
+    try:
+        cursor.execute(query, data)
+        db.commit()
 
-    db_close(db, cursor)
+        set_profile(user_id, 'Аноним', None, 0, 0, 0, 0)
+        set_report(user_id, datetime.date.min, 0, 0, 0)
 
-    set_profile(user_id, 'Аноним', None, 0, 0, 0, 0)
-    set_report(user_id, int(time.time()), 0, 0)
+        db_close(db, cursor)
+
+    except IntegrityError:
+        # This can occur if not all 3 tables from vUser have row, so it wil re-register him
+
+        db_close(db, cursor)
+
+        del_user(user_id)
+        reg_user(user_id, last_msg_time)
 
     change_preferences(user_id, 'cIsReported')
 
@@ -107,6 +117,7 @@ def get_user(user_id):
         user['date_report'] = str(res[12])
         user['income'] = res[13]
         user['pure_income'] = res[14]
+        user['target'] = res[15]
 
     return user
 
@@ -512,7 +523,7 @@ def get_profile(user_id):
     return user
 
 
-def set_report(user_id, date, income, pure_income):
+def set_report(user_id, date_rep, income, pure_income, target):
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -521,14 +532,13 @@ def set_report(user_id, date, income, pure_income):
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
-    if type(date) != int:
+    if type(date_rep) != datetime.date:
         try:
-            date = int(date)
-        except ValueError:
-            raise TypeError("Time should be int type")
-    elif date > int(time.time()):
-        raise ValueError("Time should have smaller value than now (unix)")
-    date = datetime.date.fromtimestamp(date)
+            date_rep = date_rep.date()
+        except AttributeError:
+            raise TypeError("Date should be datetime.date type")
+    elif date_rep > datetime.date.today():
+        raise ValueError("Date should have smaller value than today (unix)")
 
     if type(income) != int:
         try:
@@ -545,7 +555,15 @@ def set_report(user_id, date, income, pure_income):
     elif pure_income < 0:
         raise ValueError("pure income should be positive")
 
-    data = {'user_id': user_id, 'date': date, 'income': income, 'pure_income': pure_income}
+    if type(target) != int:
+        try:
+            target = int(target)
+        except ValueError:
+            raise TypeError("Target should be int type")
+    elif target == fraction or target < 0 or target > 7:
+        raise ValueError("Target should have positive value less than 8 and not your fraction itself")
+
+    data = {'user_id': user_id, 'date': date_rep, 'income': income, 'pure_income': pure_income, 'target': target}
 
     query = 'SELECT * FROM tReports WHERE cIdUser = %s;'
 
@@ -553,10 +571,10 @@ def set_report(user_id, date, income, pure_income):
 
     cursor.execute(query, (user_id,))
     if len(cursor.fetchall()) == 0:
-        query = 'INSERT INTO tReports VALUE(%(user_id)s, %(date)s, %(income)s, %(pure_income)s);'
+        query = 'INSERT INTO tReports VALUE(%(user_id)s, %(date)s, %(income)s, %(pure_income)s, %(target)s);'
     else:
         query = 'UPDATE tReports ' \
-                'SET cDateReport = %(date)s, cIncome = %(income)s, cPureIncome = %(pure_income)s ' \
+                'SET cDateReport = %(date)s, cIncome = %(income)s, cPureIncome = %(pure_income)s, cTarget = %(target)s ' \
                 'WHERE cIdUser = %(user_id)s;'
     cursor.execute(query, data)
     db.commit()
@@ -595,6 +613,7 @@ def get_report(user_id):
     report['date'] = str(res[1])
     report['income'] = res[2]
     report['pure_income'] = res[3]
+    report['target'] = res[4]
     return report
 
 

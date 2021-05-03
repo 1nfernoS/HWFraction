@@ -4,9 +4,11 @@ Now there is not much info, so later I will expand it
 def parse is entry point of module, other def-s are calls from it.
 (c) Misden a.k.a. 1nfernos, 2021
 """
-from settings import hw_id, errors_chat, fractions
+import re
+import datetime
+from settings import hw_id, errors_chat, fractions, fraction
 
-from db.users import get_role
+import db.users as users
 import vk_api
 from hw_api import distribute
 
@@ -14,7 +16,7 @@ from hw_api import distribute
 def parse(msg, fwd):
     roles = [0]
     user_id = msg['from_id']
-    role_id = get_role(user_id)
+    role_id = users.get_role(user_id)
     chat_id = msg['peer_id']
 
     if len(fwd) == 1:
@@ -26,15 +28,16 @@ def parse(msg, fwd):
             share_flag = '&#128187;' in txt  # lvl emoji / notebook emoji
             inventory_flag = '&#127890;' in txt  # backpack emoji
             if battle_flag:
-                print("forward with battle")
+                battle(user_id, txt, role_id)
             elif inventory_flag:
                 return
             elif profile_flag:
-                profile(user_id, txt)
+                profile(user_id, txt, role_id)
             elif share_flag:
-                share(user_id, txt)
-            elif role_id in roles:
-                get_time(fwd, chat_id, role_id)
+                share(user_id, txt, role_id)
+            else:
+                if role_id in roles:
+                    get_time(fwd, chat_id, role_id)
             return
         else:
             get_time(fwd, chat_id, role_id)
@@ -45,13 +48,6 @@ def parse(msg, fwd):
             return
         else:
             return
-    # Exists:
-    # +  return time in 1-3 forwards depth
-    # +  start distribute res of battle if len==7 and all from bot
-    #   return object if text = '/test' (ignore)
-    # Needed to:
-    #   parse profile, share
-    #   react to battle stats
     return
 
 
@@ -86,50 +82,63 @@ def distribution(fwd, chat_id, role_id, user_id):
     return
 
 
-def share(user_id, text):
+def share(user_id, text, role_id):
 
-    # TODO: check share with profile
+    user_info = users.get_user(user_id)
     shar = text.split(sep='\n\n')
 
     tl_flag = False
     sl_flag = False
-    squad_flag = False
 
-    # TODO: find a way to correct parse
-    string = shar[0][:shar[0].find('\n')]
-    if string.find(';')+1 > string.find(' ('):
-        start = 0
-    else:
-        start = string.find(';')+1
-    end = string.find(' (')
-    nick = string[start:end]
-    string = string[string.find('(')+1:string.find(')')]
+    nick_pattern = r"\b\w\w\w+\s"
+    squad_pattern = r"\b\w\w\b"
+    emoji_pattern = r"&#\d+;"
+    stat_pattern = r"\s\d+"
+
+    """
+        Parse block
+    """
+
+    row = shar[0].split(sep='\n')[0]
+
+    nick = re.search(nick_pattern, row)[0].strip()
+
     sl = '&#9643;'
     tl = '&#128312;'
-    if sl in string:
+    if sl in row:
         sl_flag = True
-        string = string.replace(sl, '')
-    elif tl in string:
+    elif tl in row:
         tl_flag = True
-        string = string.replace(tl, '')
     else:
         pass
 
-    if string.find('|') != -1:
-        squad = string[:2]
-        squad_flag = True
-        string = string[5:]
+    f = fractions[re.findall(emoji_pattern, row)[-1]]
+
+    if re.search(squad_pattern, row):
+        squad = re.search(squad_pattern, row)[0]
+    else:
+        squad = f
 
     # TODO: Do smth with fraction
-    frac = string[:string.find(';')+1]
-    fraction = fractions[frac]
 
-    string = shar[1]
-    stats = string.split(sep='\n')
-    prac_val = int(stats[0].split(sep='; ')[0][stats[0].split(sep='; ')[0].find(':')+2:])
-    teo_val = int(stats[0].split(sep='; ')[1][stats[0].split(sep='; ')[0].find(':')+2:])
-    hit_val = int(stats[1].split(sep='; ')[0][stats[0].split(sep='; ')[0].find(':')+2:])
-    mud_val = int(stats[1].split(sep='; ')[1][stats[0].split(sep='; ')[0].find(':')+2:])
+    prc_val = int(re.findall(stat_pattern, shar[1])[0])
+    teo_val = int(re.findall(stat_pattern, shar[1])[1])
+    hit_val = int(re.findall(stat_pattern, shar[1])[2])
+    mud_val = int(re.findall(stat_pattern, shar[1])[3])
+
+    # TODO: check share with profile
+
+    if nick != user_info['nickname']:
+        vk_api.send(user_id, "Wrong Nickname, re-send profile to confirm")
+        return
+
+    if squad != user_info['squad']:
+        vk_api.send(user_id, "Re-send profile to confirm squad")
+        return
+
+    if f != fraction:
+        vk_api.send(user_id, "Send profile to confirm fraction")
+        return
 
     message = str()
     message = message + nick + '\n'
@@ -139,21 +148,19 @@ def share(user_id, text):
         message = message + "SL" + '\n'
     else:
         message = message + "No Status" + '\n'
-    message = message + str(fraction) + '\n'
-    if squad_flag:
-        message = message + str(squad) + '\n'
-    else:
-        message = message + str(fraction) + '\n'
-    message = message + str(prac_val) + ', ' + str(teo_val) + '\n'
+    message = message + str(f) + '\n'
+    message = message + str(squad) + '\n'
+    message = message + str(prc_val) + ', ' + str(teo_val) + '\n'
     message = message + str(hit_val) + ', ' + str(mud_val) + '\n'
 
-    vk_api.send(user_id, message)
-
     # TODO: If all ok, write new data in db
+    users.set_profile(user_id, nick, squad, prc_val, teo_val, hit_val, mud_val)
+
+    vk_api.send(user_id, "Share accepted!\n" + message)
     return
 
 
-def profile(user_id, text):
+def profile(user_id, text, role_id):
 
     prof = text.split(sep='\n\n')[-3:-1]
 
@@ -161,47 +168,47 @@ def profile(user_id, text):
     sl_flag = False
     squad_flag = False
 
-    # TODO: find a way to correct parse
-    string = prof[0][:prof[0].find('\n')]
-    if string.find(';')+1 > string.find(' ('):
-        start = 0
-    else:
-        start = string.find(';')+1
-    end = string.find(' (')
-    nick = string[start:end]
-    string = string[string.find('(')+1:string.find(')')]
+    nick_pattern = r"\b\w\w\w+\s"
+    squad_pattern = r"\b\w\w\b"
+    emoji_pattern = r"&#\d+;"
+    full_pattern = r"\(\d+\)"
+    short_pattern = r"\s\d+"
+
+    """
+        Parse block
+    """
+
+    row = prof[0].split(sep='\n')[0]
+
+    nick = re.search(nick_pattern, row)[0].strip()
+
     sl = '&#9643;'
     tl = '&#128312;'
-    if sl in string:
+    if sl in row:
         sl_flag = True
-        string = string.replace(sl, '')
-    elif tl in string:
+    elif tl in row:
         tl_flag = True
-        string = string.replace(tl, '')
     else:
         pass
 
-    if string.find('|') != -1:
-        squad = string[:2]
+    f = fractions[re.findall(emoji_pattern, row)[-1]]
+
+    if re.search(squad_pattern, row):
+        squad = re.search(squad_pattern, row)[0]
         squad_flag = True
-        string = string[5:]
-
-    # TODO: Do smth with fraction
-    frac = string[:string.find(';')+1]
-    fraction = fractions[frac]
-
-    string = prof[1]
-    stats = string.split(sep='\n')
-    if len(stats) == 2:
-        prac_val = int(stats[0].split(sep='; ')[0][stats[0].split(sep='; ')[0].find(':')+2:])
-        teo_val = int(stats[0].split(sep='; ')[1][stats[0].split(sep='; ')[0].find(':')+2:])
-        hit_val = int(stats[1].split(sep='; ')[0][stats[0].split(sep='; ')[0].find(':')+2:])
-        mud_val = int(stats[1].split(sep='; ')[1][stats[0].split(sep='; ')[0].find(':')+2:])
     else:
-        prac_val = int(stats[1][stats[1].find('(')+1:stats[1].find(')')])
-        teo_val = int(stats[2][stats[2].find('(')+1:stats[2].find(')')])
-        hit_val = int(stats[3][stats[3].find('(')+1:stats[3].find(')')])
-        mud_val = int(stats[4][stats[4].find('(')+1:stats[4].find(')')])
+        squad = f
+
+    if len(re.findall(full_pattern, prof[1])) == 0:
+        prc_val = int(re.findall(short_pattern, prof[1])[0])
+        teo_val = int(re.findall(short_pattern, prof[1])[1])
+        hit_val = int(re.findall(short_pattern, prof[1])[2])
+        mud_val = int(re.findall(short_pattern, prof[1])[3])
+    else:
+        prc_val = int(re.findall(full_pattern, prof[1])[0][1:-1])
+        teo_val = int(re.findall(full_pattern, prof[1])[1][1:-1])
+        hit_val = int(re.findall(full_pattern, prof[1])[2][1:-1])
+        mud_val = int(re.findall(full_pattern, prof[1])[3][1:-1])
 
     message = str()
     message = message + nick + '\n'
@@ -211,19 +218,86 @@ def profile(user_id, text):
         message = message + "SL" + '\n'
     else:
         message = message + "No Status" + '\n'
-    message = message + str(fraction) + '\n'
-    if squad_flag:
-        message = message + str(squad) + '\n'
-    else:
-        message = message + str(fraction) + '\n'
-    message = message + str(prac_val) + ', ' + str(teo_val) + '\n'
+    message = message + str(f) + '\n'
+    message = message + str(squad) + '\n'
+    message = message + str(prc_val) + ', ' + str(teo_val) + '\n'
     message = message + str(hit_val) + ', ' + str(mud_val) + '\n'
 
-    vk_api.send(user_id, message)
-
     # TODO: If all ok, write new data in db
+    users.set_profile(user_id, nick, squad, prc_val, teo_val, hit_val, mud_val)
+    if tl_flag:
+        role = 1
+    elif sl_flag:
+        role = 5
+    elif squad_flag:
+        role = 9
+    elif f == fraction:
+        role = 11
+    else:
+        role = 12
+    if role_id != role and role_id != 0:
+        users.set_role(user_id, role)
+
+    vk_api.send(user_id, "Profile accepted!\n" + message)
     return
 
 
-def battle():
+def battle(user_id, text, role_id):
+    roles = [0, 1, 3, 5, 7, 9, 11]
+
+    if role_id not in roles:
+        return
+
+    date_row = text.split(sep='\n\n')[0]
+    date_pattern = r"\d{2}.\d{2}.\d{4}"
+    date = re.search(date_pattern, date_row)[0]
+    date = datetime.datetime.strptime(date, '%d.%m.%Y').date()  # DD.MM.YYYY format
+    tomorrow = datetime.date.today().replace(day=datetime.date.today().day+1)
+    if date > tomorrow:
+        print("Future reports are not allowed")
+        return
+
+    money = r"\d+"
+    emoji_pattern = r"&#\d+;"
+
+    msg = text.split(sep='\n\n')[1:-1]
+    income = 0
+    pure = 0
+    target = 0
+    result = str()
+    for block in range(len(msg)):
+        res = msg[block].split(sep='\n')
+        if len(res) == 1:
+            target = 0
+            result = result + 'AFK' + '\n'
+        elif len(res) == 2:
+            tran = int(re.search(money, res[1])[0])
+            result = result + "Transaction:" + str(tran) + '\n'
+            income += tran
+            pure += tran
+        elif len(res) == 3:
+            loss = int(re.search(money, res[2])[0])
+            result = result + "Lost from def:" + str(loss) + '\n'
+            pure -= loss
+        elif len(res) == 4:
+            if re.search(emoji_pattern, res[0]):
+                target = fractions[re.search(emoji_pattern, res[0])[0]]
+            main = int(re.search(money, res[2])[0])
+            result = result + "Failed attack: " + str(main) + '\n'
+            pure -= main
+        elif len(res) == 5:
+            if re.search(emoji_pattern, res[0]):
+                target = fractions[re.search(emoji_pattern, res[0])[0]]
+            main = int(re.search(money, res[2])[0])
+            result = result + "Attack: " + str(main) + '\n'
+            pure += main
+            income += main
+    result = result + "Income:" + str(income) + '\nPure:' + str(pure) + '\nTarget:' + str(target)
+
+    vk_api.send(user_id, result)
+
+    # TODO: write res of battle
+
+    users.set_report(user_id, date, income, pure, target)
+    vk_api.send(user_id, "Battle result successfully written")
     return

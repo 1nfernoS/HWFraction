@@ -545,15 +545,13 @@ def set_report(user_id, date_rep, income, pure_income, target):
             income = int(income)
         except ValueError:
             raise TypeError("Income should be int type")
-    elif income < 0:
-        raise ValueError("Income should be positive")
     if type(pure_income) != int:
         try:
             pure_income = int(pure_income)
         except ValueError:
             raise TypeError("Pure income should be int type")
-    elif pure_income < 0:
-        raise ValueError("pure income should be positive")
+    if pure_income > income:
+        raise ValueError("Pure income can't be bigger than overall income")
 
     if type(target) != int:
         try:

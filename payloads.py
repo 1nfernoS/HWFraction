@@ -5,6 +5,7 @@ This module handles all payload data. I don't sure how it will be in the end, bu
 import vk_api
 from hw_api import set_target
 from settings import fraction
+import kbd_list
 
 import db.users as users
 
@@ -13,8 +14,18 @@ def start(msg, payload):
     # TODO: make normal payloads, not only target parse
     chat = msg['peer_id']
     user_id = msg['from_id']
+    if 'command' in payload.keys():  # first button in bot
+        payload = {'type': 'page', 'value': 'main'}
     role_id = users.get_role(user_id)
-    target(msg=msg, payload=payload, chat=chat, role_id=role_id)
+    globals()[payload['type']](msg=msg, payload=payload['value'], chat=chat, role_id=role_id)
+    return
+
+
+def page(**kwargs):
+    pl = kwargs['payload']
+    kbd = kbd_list.get_kbd(pl)
+    # TODO: Edit kbd if role
+    vk_api.send(kwargs['chat'], "Page " + pl, kbd)
     return
 
 

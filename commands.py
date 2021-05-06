@@ -9,6 +9,7 @@ You can not following this recommendations, but in this case you all doing at yo
 """
 import vk_api
 import hw_api
+import kbd_list
 from settings import fraction, start_time
 
 import db.users as users
@@ -24,7 +25,7 @@ def start(msg, command):
 
 
 def cmd(**kwargs):
-    return list(globals())[16:]
+    return list(globals())[17:]
 
 
 def cmd_list(**kwargs):
@@ -244,27 +245,7 @@ def kbd(**kwargs):
         vk_api.send(kwargs['chat'], "Access Denied")
         return
 
-    keyboard = {'one_time': False, 'buttons': [
-        [
-            {'action': {'type': 'text', 'label': '&#128160; Aegis', 'payload': '{"target": 1}'},
-             'color': 'primary'},
-            {'action': {'type': 'text', 'label': '&#128679; V-Hack', 'payload': '{"target": 2}'},
-             'color': 'primary'},
-            {'action': {'type': 'text', 'label': '&#127541; Hu&#466;qi&#225;ng', 'payload': '{"target": 4}'},
-             'color': 'primary'}
-        ],
-        [
-            {'action': {'type': 'text', 'label': '&#128305; NetKings', 'payload': '{"target": 5}'},
-             'color': 'primary'},
-            {'action': {'type': 'text', 'label': '&#127482;&#127480; NHS', 'payload': '{"target": 6}'},
-             'color': 'primary'},
-            {'action': {'type': 'text', 'label': '&#128272; Защита', 'payload': '{"target": 7}'},
-             'color': 'secondary'}
-        ],
-        [
-            {'action': {'type': 'text', 'label': '&#10060; Удалить клавиатуру', 'payload': '{"target": 0}'},
-             'color': 'negative'}
-        ]]}
+    keyboard = kbd_list.target
     vk_api.send(kwargs['chat'], "Your keyboard!", keyboard)
     return
 
@@ -397,4 +378,12 @@ def squad_list(**kwargs):
     msg = ', '.join(squads.get_squads())
 
     vk_api.send(kwargs['chat'], msg)
+    return
+
+
+def home(**kwargs):
+    if kwargs['chat'] > 2000000000:
+        return
+    kb = kbd_list.main
+    vk_api.send(kwargs['chat'], "Home", kb)
     return

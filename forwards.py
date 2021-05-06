@@ -126,7 +126,7 @@ def share(user_id, text, role_id):
     hit_val = int(re.findall(stat_pattern, shar[1])[2])
     mud_val = int(re.findall(stat_pattern, shar[1])[3])
 
-    # TODO: check share with profile
+    # Check share with profile
 
     if nick != user_info['nickname']:
         vk_api.send(user_id, "Wrong Nickname, re-send profile to confirm")
@@ -153,10 +153,11 @@ def share(user_id, text, role_id):
     message = message + str(prc_val) + ', ' + str(teo_val) + '\n'
     message = message + str(hit_val) + ', ' + str(mud_val) + '\n'
 
-    # TODO: If all ok, write new data in db
-    users.set_profile(user_id, nick, squad, prc_val, teo_val, hit_val, mud_val)
+    # If all ok, write new data in db
 
+    users.set_profile(user_id, nick, squad, prc_val, teo_val, hit_val, mud_val)
     vk_api.send(user_id, "Share accepted!\n" + message)
+
     return
 
 
@@ -223,22 +224,31 @@ def profile(user_id, text, role_id):
     message = message + str(prc_val) + ', ' + str(teo_val) + '\n'
     message = message + str(hit_val) + ', ' + str(mud_val) + '\n'
 
-    # TODO: If all ok, write new data in db
+    # If all ok, write new data in db
     users.set_profile(user_id, nick, squad, prc_val, teo_val, hit_val, mud_val)
+
+    roles = [0, 3, 4, 7, 8]  # Creator and associate leaders (no signs in profile for him)
     if tl_flag:
-        role = 1
+        if f == fraction:
+            role = 1
+        else:
+            role = 2
     elif sl_flag:
-        role = 5
+        if f == fraction:
+            role = 5
+        else:
+            role = 6
     elif squad_flag:
         role = 9
     elif f == fraction:
         role = 11
     else:
         role = 12
-    if role_id != role and role_id != 0:
+    if role_id != role and role_id not in roles:
         users.set_role(user_id, role)
 
     vk_api.send(user_id, "Profile accepted!\n" + message)
+
     return
 
 
@@ -252,9 +262,18 @@ def battle(user_id, text, role_id):
     date_pattern = r"\d{2}.\d{2}.\d{4}"
     date = re.search(date_pattern, date_row)[0]
     date = datetime.datetime.strptime(date, '%d.%m.%Y').date()  # DD.MM.YYYY format
+
     tomorrow = datetime.date.today().replace(day=datetime.date.today().day+1)
     if date > tomorrow:
-        print("Future reports are not allowed")
+        vk_api.send(user_id, "Future reports are not allowed")
+        return
+
+    # TODO: Add check for date limit (for every squad or 3 days)
+
+    last_report = users.get_report(user_id)['date']
+    last_report = datetime.datetime.strptime(last_report, '%Y-%m-%d').date()
+    if date < last_report:
+        vk_api.send(user_id, "This is old report, send more actual")
         return
 
     money = r"\d+"
@@ -282,12 +301,16 @@ def battle(user_id, text, role_id):
         elif len(res) == 4:
             if re.search(emoji_pattern, res[0]):
                 target = fractions[re.search(emoji_pattern, res[0])[0]]
+            else:
+                target = 7
             main = int(re.search(money, res[2])[0])
             result = result + "Failed attack: " + str(main) + '\n'
             pure -= main
         elif len(res) == 5:
             if re.search(emoji_pattern, res[0]):
                 target = fractions[re.search(emoji_pattern, res[0])[0]]
+            else:
+                target = 7
             main = int(re.search(money, res[2])[0])
             result = result + "Attack: " + str(main) + '\n'
             pure += main
@@ -295,8 +318,6 @@ def battle(user_id, text, role_id):
     result = result + "Income:" + str(income) + '\nPure:' + str(pure) + '\nTarget:' + str(target)
 
     vk_api.send(user_id, result)
-
-    # TODO: write res of battle
 
     users.set_report(user_id, date, income, pure, target)
     vk_api.send(user_id, "Battle result successfully written")

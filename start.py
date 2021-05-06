@@ -59,6 +59,7 @@ after_response.AfterResponse(app)
 #       6.1 Pinned message in chats
 #       6.2 Profile message
 #       +- 6.3 Employee list
+#   7.Keyboards
 
 
 @app.route('/')

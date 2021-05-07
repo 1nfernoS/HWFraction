@@ -1,5 +1,5 @@
 """
-This module handles all payload data. I don't sure how it will be in the end, but now we have description ^^
+This module handles all payload data. All payloads have types, so you can check it in schema.json (later)
 (c) Misden a.k.a. 1nfernoS, 2021
 """
 import vk_api
@@ -11,7 +11,6 @@ import db.users as users
 
 
 def start(msg, payload):
-    # TODO: make normal payloads, not only target parse
     chat = msg['peer_id']
     user_id = msg['from_id']
     if 'command' in payload.keys():  # first button in bot
@@ -25,22 +24,26 @@ def page(**kwargs):
     pl = kwargs['payload']
     kbd = getattr(kbd_list, pl)
     # TODO: Edit kbd if role
+    # TODO: Make page titles (Battle_Push page looks not safe)
     vk_api.send(kwargs['chat'], pl.title() + ' page', kbd)
     return
 
 
 def toggle(**kwargs):
+    # TODO: Find reason why preference not changing
+    vk_api.send(kwargs['chat'], "This function is temporary unavailable")
+    """
     preference = kwargs['payload']
     users.change_preferences(kwargs['chat'], preference)
     msg = 'You have successfully changed preference'
     vk_api.send(kwargs['chat'], msg)
+    """
     return
 
 
 def target(**kwargs):
     roles = [0, 1, 3, 5, 7]
-    # TODO
-    # in multiThreading
+    # TODO: in multiThreading
 
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
@@ -60,20 +63,29 @@ def target(**kwargs):
 
 
 def stats(**kwargs):
-    vk_api.send(kwargs['chat'], "This function is temporary unavailable")
+    # TODO: Generating stats
+    blocked(kwargs['chat'])
     return
 
 
 def inputs(**kwargs):
-    vk_api.send(kwargs['chat'], "This function is temporary unavailable")
+    # TODO: Make inputs are possible
+    blocked(kwargs['chat'])
     return
 
 
 def item(**kwargs):
-    vk_api.send(kwargs['chat'], "This function is temporary unavailable")
+    # TODO: Make generator for keyboard
+    blocked(kwargs['chat'])
     return
 
 
 def lists(**kwargs):
-    vk_api.send(kwargs['chat'], "This function is temporary unavailable")
+    # TODO: Make generator for lists
+    blocked(kwargs['chat'])
+    return
+
+
+def blocked(chat):
+    vk_api.send(chat, "This function is temporary unavailable")
     return

@@ -117,6 +117,19 @@ def message(msg):
     user = int(msg['from_id'])
 
     if user > 0:
+        pl = 'payload' in msg.keys()
+        fwd = len(msg['fwd_messages']) != 0
+        com = text.startswith('/')
+        if user != chat:
+            if pl or com:
+                pass
+            else:
+                return
+        else:
+            if pl or com or fwd:
+                pass
+            else:
+                return
         try:
             get_user(user)
         except ValueError:
@@ -134,19 +147,19 @@ def message(msg):
         return
 
     # keyboards
-    if 'payload' in msg.keys():
+    if pl:
         pl = json.loads(msg['payload'])
         payload(msg, pl)
         return
 
     # forwards
-    if len(msg['fwd_messages']) != 0 and text == '':
-        fwd = msg['fwd_messages']
-        forwards(msg, fwd)
+    if fwd and text == '':
+        forward = msg['fwd_messages']
+        forwards(msg, forward)
         return
 
     # commands
-    if msg['text'].startswith('/'):
+    if com:
         command = msg['text'].split()
         command[0] = command[0].replace('/', '')
         if command[0] in cmd():

@@ -8,10 +8,8 @@ from settings import db_data
 
 
 class DB(object):
-    def __init__(self):
-        self._connection = sql.connect(user=db_data['user'], password=db_data['password'],
-                                       host=db_data['host'], database=db_data['database'])
-        return
+    _connection = sql.connect(user=db_data['user'], password=db_data['password'],
+                              host=db_data['host'], database=db_data['database'])
 
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, '_instance'):
@@ -20,6 +18,9 @@ class DB(object):
         return cls._instance
 
     def connect(self):
+        if not self._connection.is_connected():
+            self._connection = sql.connect(user=db_data['user'], password=db_data['password'],
+                                           host=db_data['host'], database=db_data['database'])
         return self._connection
 
 

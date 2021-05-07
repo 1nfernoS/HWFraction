@@ -35,12 +35,18 @@ def parse(msg, fwd):
                 profile(user_id, txt, role_id)
             elif share_flag:
                 share(user_id, txt, role_id)
+            elif role_id in roles:
+                get_time(fwd, chat_id, role_id)
             else:
-                if role_id in roles:
-                    get_time(fwd, chat_id, role_id)
+                if user_id == chat_id:
+                    vk_api.send(chat_id, "А зачем мне это..?")
             return
         else:
-            get_time(fwd, chat_id, role_id)
+            if role_id in roles:
+                get_time(fwd, chat_id, role_id)
+            else:
+                if user_id == chat_id:
+                    vk_api.send(chat_id, "А зачем мне это..?")
             return
     elif len(fwd) == 7:
         if chat_id < 2000000000:

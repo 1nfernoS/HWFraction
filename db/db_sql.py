@@ -7,16 +7,30 @@ import mysql.connector as sql
 from settings import db_data
 
 
-# TODO: Make db static class
+class DB(object):
+    def __init__(self):
+        self._connection = sql.connect(user=db_data['user'], password=db_data['password'],
+                                       host=db_data['host'], database=db_data['database'])
+        return
+
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, '_instance'):
+            orig = super(DB, cls)
+            cls._instance = orig.__new__(cls)
+        return cls._instance
+
+    def connect(self):
+        return self._connection
+
+
 def db_open():
-    db = sql.connect(user=db_data['user'], password=db_data['password'], host=db_data['host'],
-                     database=db_data['database'])
-    cursor = db.cursor()
-    return db, cursor
+    db = DB()
+    con = db.connect()
+    cursor = con.cursor()
+    return con, cursor
 
 
 def db_close(db, cursor):
-    db.close()
     cursor.close()
     return
 

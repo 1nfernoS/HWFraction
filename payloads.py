@@ -48,12 +48,12 @@ def target(**kwargs):
 
     # TeamLeader
     if kwargs['role_id'] in roles[0:3]:
-        set_target(str(fraction), kwargs['payload']['target'])
+        set_target(str(fraction), kwargs['payload'])
 
     # Squad Leader
     else:
         source = users.get_squad(kwargs['msg']['from_id'])
-        set_target(source, kwargs['payload']['target'])
+        set_target(source, kwargs['payload'])
 
     vk_api.send(kwargs['chat'], "target sent!")
     return

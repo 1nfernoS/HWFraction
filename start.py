@@ -98,11 +98,7 @@ def handler():
 
     if type_msg == 'message_new':
         data_msg = obj_msg['message']
-
-    @app.after_response
-    def after(*args):
         message(data_msg)
-        return
 
     return make_response('ok', 200)
 

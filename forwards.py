@@ -90,7 +90,7 @@ def share(user_id, text, role_id):
     tl_flag = False
     sl_flag = False
 
-    nick_pattern = r"\b\w\w\w+\s"
+    nick_pattern = r"\b[\w ]+\b(?=\s\()"
     squad_pattern = r"\b\w\w\b"
     emoji_pattern = r"&#\d+;"
     stat_pattern = r"\s\d+"
@@ -169,7 +169,7 @@ def profile(user_id, text, role_id):
     sl_flag = False
     squad_flag = False
 
-    nick_pattern = r"\b\w\w\w+\s"
+    nick_pattern = r"\b[\w ]+\b(?=\s\()"
     squad_pattern = r"\b\w\w\b"
     emoji_pattern = r"&#\d+;"
     full_pattern = r"\(\d+\)"

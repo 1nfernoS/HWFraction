@@ -25,7 +25,7 @@ settings = {
                 {'color': 'primary', 'action': {'type': 'text', 'label': 'Subscribe', 'payload': '{"type": "toggle", "value": "cIsSubscribed"}'}}
             ],
             [
-                {'color': 'secondary', 'action': {'type': 'text', 'label': 'Pushes fo battle', 'payload': '{"type": "page", "value": "battle_push"}'}}
+                {'color': 'secondary', 'action': {'type': 'text', 'label': 'Pushes for battle', 'payload': '{"type": "page", "value": "battle_push"}'}}
             ],
             [
                 {'color': 'secondary', 'action': {'type': 'text', 'label': 'Home', 'payload': '{"type": "page", "value": "main"}'}}

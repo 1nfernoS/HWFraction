@@ -246,6 +246,7 @@ def kbd(**kwargs):
         return
 
     keyboard = kbd_list.target
+    keyboard['buttons'].pop()
     vk_api.send(kwargs['chat'], "Your keyboard!", keyboard)
     return
 

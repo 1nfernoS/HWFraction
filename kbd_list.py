@@ -1,7 +1,3 @@
-def get_kbd(value):
-    return globals()[value]
-
-
 main = {
     'one_time': False,
     'inline': False,
@@ -24,9 +20,9 @@ settings = {
     'buttons':
         [
             [
-                {'color': 'primary', 'action': {'type': 'text', 'label': 'Show Report', 'payload': '{"type": "toggle", "value": "report"}'}},
-                {'color': 'primary', 'action': {'type': 'text', 'label': 'Show Profile', 'payload': '{"type": "toggle", "value": "profile"}'}},
-                {'color': 'primary', 'action': {'type': 'text', 'label': 'Subscribe', 'payload': '{"type": "toggle", "value": "subscribe"}'}}
+                {'color': 'primary', 'action': {'type': 'text', 'label': 'Show Report', 'payload': '{"type": "toggle", "value": "cShowReport"}'}},
+                {'color': 'primary', 'action': {'type': 'text', 'label': 'Show Profile', 'payload': '{"type": "toggle", "value": "cShowProfile"}'}},
+                {'color': 'primary', 'action': {'type': 'text', 'label': 'Subscribe', 'payload': '{"type": "toggle", "value": "cIsSubscribed"}'}}
             ],
             [
                 {'color': 'secondary', 'action': {'type': 'text', 'label': 'Pushes fo battle', 'payload': '{"type": "page", "value": "battle_push"}'}}
@@ -46,11 +42,11 @@ control = {
                 {'color': 'positive', 'action': {'type': 'text', 'label': 'Set target', 'payload': '{"type": "page", "value": "target"}'}}
             ],
             [
-                {'color': 'primary', 'action': {'type': 'text', 'label': 'Manage associates', 'payload': '{"type": "list", "value": "associates"}'}},
-                {'color': 'primary', 'action': {'type': 'text', 'label': 'Notes', 'payload': '{"type": "list", "value": "notes"}'}}
+                {'color': 'primary', 'action': {'type': 'text', 'label': 'Manage associates', 'payload': '{"type": "lists", "value": "associates"}'}},
+                {'color': 'primary', 'action': {'type': 'text', 'label': 'Notes', 'payload': '{"type": "lists", "value": "notes"}'}}
             ],
             [
-                {'color': 'secondary', 'action': {'type': 'text', 'label': 'Reports List', 'payload': '{"type": "list", "value": "reports"}'}}
+                {'color': 'secondary', 'action': {'type': 'text', 'label': 'Reports List', 'payload': '{"type": "lists", "value": "reports"}'}}
             ],
             [
                 {'color': 'secondary', 'action': {'type': 'text', 'label': 'Home', 'payload': '{"type": "page", "value": "main"}'}}
@@ -85,7 +81,7 @@ battle_push = {
                 {'color': 'primary', 'action': {'type': 'text', 'label': 'Enable push', 'payload': '{"type": "toggle", "value": "push"}'}}
             ],
             [
-                {'color': 'secondary', 'action': {'type': 'text', 'label': 'Text', 'payload': '{"type": "input", "value": "push"}'}}
+                {'color': 'secondary', 'action': {'type': 'text', 'label': 'Text', 'payload': '{"type": "inputs", "value": "push"}'}}
             ],
             [
                 {'color': 'secondary', 'action': {'type': 'text', 'label': 'Back', 'payload': '{"type": "page", "value": "settings"}'}},

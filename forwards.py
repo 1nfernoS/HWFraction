@@ -325,6 +325,7 @@ def battle(user_id, text, role_id):
 
     vk_api.send(user_id, result)
 
+    # TODO: Find reason in change_preference
     users.set_report(user_id, date, income, pure, target)
     vk_api.send(user_id, "Battle result successfully written")
     return

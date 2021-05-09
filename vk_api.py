@@ -23,13 +23,15 @@ def send(user_id, msg, kbd=None):
                           random_id=0,
                           message=str(msg),
                           keyboard=json.dumps(kbd),
-                          disable_mentions=True
+                          disable_mentions=True,
+                          dont_parse_links=True
                           )
     else:
         api.messages.send(access_token=token,
                           peer_id=str(user_id),
                           random_id=0,
                           message=str(msg),
-                          disable_mentions=True
+                          disable_mentions=True,
+                          dont_parse_links=True
                           )
     return

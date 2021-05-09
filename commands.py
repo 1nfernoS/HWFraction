@@ -14,6 +14,7 @@ from settings import fraction, start_time
 
 import db.users as users
 import db.squads as squads
+from db.db_sql import execute
 
 
 def start(msg, command):
@@ -25,7 +26,7 @@ def start(msg, command):
 
 
 def cmd(**kwargs):
-    return list(globals())[17:]
+    return list(globals())[18:]
 
 
 def cmd_list(**kwargs):
@@ -245,9 +246,26 @@ def kbd(**kwargs):
         vk_api.send(kwargs['chat'], "Access Denied")
         return
 
-    keyboard = kbd_list.target
-    keyboard['buttons'].pop()
+    # We need to modify keyboard without affecting to original
+    keyboard = dict()
+    for key in kbd_list.target:
+        keyboard[key] = kbd_list.target[key]
+    keyboard['buttons'] = keyboard['buttons'][:-1]
     vk_api.send(kwargs['chat'], "Your keyboard!", keyboard)
+    return
+
+
+def kbdd(**kwargs):
+    # TeamLeaders only
+    roles = [0, 1, 3]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    keyboard = {'one_time': True, 'buttons': []}
+    # We need to modify keyboard without affecting to original
+    vk_api.send(kwargs['chat'], "Keyboard removed!", keyboard)
     return
 
 
@@ -387,4 +405,20 @@ def home(**kwargs):
         return
     kb = kbd_list.main
     vk_api.send(kwargs['chat'], "Home", kb)
+    return
+
+
+# TODO: Remove after tests
+def query(**kwargs):
+    roles = [0]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    q = kwargs['msg']['text'].replace('/query ', '')
+    res = execute(q)
+    vk_api.send(kwargs['msg']['from_id'], res)
+    vk_api.send(kwargs['chat'], "Result is in your chat")
+
     return

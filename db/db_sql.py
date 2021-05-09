@@ -64,7 +64,7 @@ def get_columns(table):
     cursor.execute(query)
 
     for r in cursor.fetchall():
-        columns.append(r[0])
+        columns.append(r[0].lower())
 
     db_close(db, cursor)
     return columns
@@ -90,3 +90,22 @@ def get_column_types(table):
     db_close(db, cursor)
     return columns
 
+
+# TODO: Remove after tests
+def execute(query):
+    db, cursor = db_open()
+    try:
+        cursor.execute(query)
+        answer = cursor.fetchall()
+        db.commit()
+    except:
+        return
+    finally:
+        db_close(db, cursor)
+    if len(answer) != 0:
+        res = list()
+        for i in answer:
+            res.append(i)
+    else:
+        res = 'Success'
+    return res

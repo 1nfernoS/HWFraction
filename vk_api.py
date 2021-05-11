@@ -10,16 +10,22 @@ import vk
 api = vk.API(vk.Session(), v='5.126')
 
 
-def send(user_id, msg, kbd=None):
+def send(chat_id, msg, kbd=None):
+    """
+    Send message from name of bot
+    :param chat_id: int/str, id of chat to send
+    :param msg: str, message to send
+    :param kbd: None / dict, keyboard
+    """
     if debug:
         if kbd:
-            print(str(user_id) + ':\n' + str(msg) + ',\n kbd: True')
+            print(str(chat_id) + ':\n' + str(msg) + ',\n kbd: True')
         else:
-            print(str(user_id) + ':\n' + str(msg))
+            print(str(chat_id) + ':\n' + str(msg))
         return
     if kbd:
         api.messages.send(access_token=token,
-                          peer_id=str(user_id),
+                          peer_id=str(chat_id),
                           random_id=0,
                           message=str(msg),
                           keyboard=json.dumps(kbd),
@@ -28,7 +34,7 @@ def send(user_id, msg, kbd=None):
                           )
     else:
         api.messages.send(access_token=token,
-                          peer_id=str(user_id),
+                          peer_id=str(chat_id),
                           random_id=0,
                           message=str(msg),
                           disable_mentions=True,

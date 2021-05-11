@@ -13,7 +13,6 @@ main = {
         ]
 }
 
-
 settings = {
     'one_time': False,
     'inline': False,

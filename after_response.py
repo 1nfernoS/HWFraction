@@ -1,3 +1,7 @@
+"""
+This module is copy of solution for working after request
+But it's not working without threads :(
+"""
 from werkzeug.wsgi import ClosingIterator
 from traceback import print_exc
 

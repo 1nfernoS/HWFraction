@@ -8,6 +8,9 @@ from settings import db_data
 
 
 class DB(object):
+    """
+    Object of connection to DB. Have single instance for avoid multiple connections
+    """
     _connection = sql.connect(user=db_data['user'], password=db_data['password'],
                               host=db_data['host'], database=db_data['database'])
 
@@ -25,6 +28,10 @@ class DB(object):
 
 
 def db_open():
+    """
+    "Open" connection for use DB
+    :return: connection, cursor
+    """
     db = DB()
     con = db.connect()
     cursor = con.cursor()
@@ -32,11 +39,21 @@ def db_open():
 
 
 def db_close(db, cursor):
+    """
+    "Close" connection for DB
+    :param db: connection
+    :param cursor: cursor
+    :return: None
+    """
     cursor.close()
     return
 
 
 def get_tables():
+    """
+    Get list of all tables in DB
+    :return: list [ %table_name%: str ]
+    """
     db, cursor = db_open()
 
     tables = list()
@@ -51,6 +68,11 @@ def get_tables():
 
 
 def get_columns(table):
+    """
+    Get list of columns from table in DB
+    :param table: str, table name (use get_tables() ti check)
+    :return: list [ %column_name%: str]
+    """
     db, cursor = db_open()
 
     if str(table).lower() not in get_tables():
@@ -71,6 +93,11 @@ def get_columns(table):
 
 
 def get_column_types(table):
+    """
+    Get structure info about table in DB
+    :param table: str, table name (use get_tables() ti check)
+    :return: dict { %column_name%: str : %data_type%: str}
+    """
     db, cursor = db_open()
 
     if str(table).lower() not in get_tables():
@@ -93,6 +120,12 @@ def get_column_types(table):
 
 # TODO: Remove after tests
 def execute(query):
+    """
+    Execute query directly into DB
+    !!! [DANGER] !!! Use it only if you 101% sure what are you doing
+    :param query: str, SQL query
+    :return: 'Success' / raw tuple from SELECT statement
+    """
     db, cursor = db_open()
     try:
         cursor.execute(query)

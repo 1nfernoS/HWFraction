@@ -12,6 +12,11 @@ import time
 
 
 def get_token(source):
+    """
+    Get squad token by source from DB
+    :param source: str, squad's initials
+    :return: str, API token
+    """
     db, cursor = db_open()
 
     if type(source) != str:
@@ -34,6 +39,10 @@ def get_token(source):
 
 
 def get_squads():
+    """
+    Get list of squads from DB
+    :return: list [ %squad's_source%: str ]
+    """
     db, cursor = db_open()
 
     squads = list()
@@ -48,6 +57,11 @@ def get_squads():
 
 
 def count_squads():
+    """
+    Don't remember why...
+    Count all squads, including fraction as squad, from DB
+    :return: int, count of all squads
+    """
     db, cursor = db_open()
 
     query = 'SELECT COUNT(*) FROM tSquads;'
@@ -59,6 +73,12 @@ def count_squads():
 
 
 def reg_squad(source, token):
+    """
+    Write squad and token into DB
+    :param source: str, squad's initials
+    :param token: str, API token
+    :return: None
+    """
     db, cursor = db_open()
 
     if type(source) != str:
@@ -94,6 +114,12 @@ def reg_squad(source, token):
 
 
 def set_chat(source, id_chat):
+    """
+    Write chat id of squad into DB
+    :param source: str, squad's initials
+    :param id_chat: int, greater than 2000000000 [peer_id]
+    :return: None
+    """
     db, cursor = db_open()
 
     if type(source) != str:
@@ -128,6 +154,11 @@ def set_chat(source, id_chat):
 
 
 def get_leaders(source):
+    """
+    Get list of leaders or associates in squad from DB
+    :param source: str, squad's initials
+    :return: list [ %user_id%: int ]
+    """
     db, cursor = db_open()
 
     leaders = list()
@@ -154,6 +185,11 @@ def get_leaders(source):
 
 
 def squad_users(source):
+    """
+    Get all users in squad from DB
+    :param source: str, squad's initials
+    :return: dict { %user_id%: int, %nickname%: str }
+    """
     if type(source) != str:
         try:
             source = str(source)
@@ -180,6 +216,13 @@ def squad_users(source):
 
 
 def set_target(source, target, timer):
+    """
+    Write timer data for set target into DB
+    :param source: str, squad's initials
+    :param target: int, from 0 to 7
+    :param timer: int, unix timestamp(rework into datetime)
+    :return: None
+    """
     if type(source) != str:
         try:
             source = str(source)
@@ -230,6 +273,11 @@ def set_target(source, target, timer):
 
 
 def del_squad(source):
+    """
+    Delete squad from DB
+    :param source: str, squad's initials
+    :return: None
+    """
     if type(source) != str:
         try:
             source = str(source)

@@ -16,6 +16,12 @@ from db.squads import get_squads
 
 
 def reg_user(user_id, last_msg_time):
+    """
+    Add new user into DB
+    :param user_id: int, id from vk [from_id]
+    :param last_msg_time: int, unix time [date]
+    :return: None
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -48,19 +54,24 @@ def reg_user(user_id, last_msg_time):
         db_close(db, cursor)
 
     except IntegrityError:
-        # This can occur if not all 3 tables from vUser have row, so it wil re-register him
+        # This can occur if not all 3 tables from vUser have row, so it will re-register him
 
         db_close(db, cursor)
 
         del_user(user_id)
         reg_user(user_id, last_msg_time)
 
-    change_preferences(user_id, 'cIsReported')
+    change_preference(user_id, 'cIsReported')
 
     return
 
 
 def user_list():
+    """
+    Get user_id and role_id from DB
+    [WARNING] Deprecated due to big quantity of data
+    :return: dict {user: role}
+    """
     query = 'SELECT cIdUser, cIdRole FROM vUser;'
 
     db, cursor = db_open()
@@ -79,6 +90,14 @@ def user_list():
 
 
 def get_user(user_id):
+    """
+    Get all info about user from DB
+    :param user_id: int, user id from vk [from_id]
+    :return: dict {user_id: int, role: int,
+    subscribe: bool, report: bool, show_profile: bool, show_report: bool,
+    nickname: str, squad: str, practice: int, theory: int, guile: int, wisdom: int;
+    if report True: date_report: str, income: int, pure_income: int, target: int}
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -123,6 +142,11 @@ def get_user(user_id):
 
 
 def del_user(user_id):
+    """
+    Delete user from all 3 tables in view vUser
+    :param user_id: int, user id from vk [from_id]
+    :return: None
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -150,6 +174,11 @@ def del_user(user_id):
 
 
 def count_role(role_id):
+    """
+    Count users with selected role in DB
+    :param role_id: int, in range of role types count (use get_roles() to check)
+    :return: int, count of users with role, int
+    """
     if type(role_id) != int:
         try:
             role_id = int(role_id)
@@ -169,7 +198,13 @@ def count_role(role_id):
     return res
 
 
-def set_role(user_id, role):
+def set_role(user_id, role_id):
+    """
+    Write new role to user. Re-write value without checking
+    :param user_id: int, user id from vk [from_id]
+    :param role_id: int, in range of role types count (use get_roles() to check)
+    :return: None
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -178,15 +213,15 @@ def set_role(user_id, role):
     elif user_id < 0 or user_id >= 2000000000:
         raise ValueError("User Id should be positive and less than 2000000000")
 
-    if type(role) != int:
+    if type(role_id) != int:
         try:
-            role = int(role)
+            role_id = int(role_id)
         except ValueError:
             raise TypeError("Role Id should be int type")
-    if role < 0 or role > 13:
+    if role_id < 0 or role_id > 13:
         raise ValueError("Role Id must be in 0-13")
 
-    data = (role, user_id)
+    data = (role_id, user_id)
     query = 'UPDATE tPreferences SET cIdRole = %s WHERE cIdUser = %s'
 
     db, cursor = db_open()
@@ -199,6 +234,10 @@ def set_role(user_id, role):
 
 
 def get_roles():
+    """
+    Get list of all roles in DB
+    :return: list [%role_id%. %role_name%]
+    """
     roles = list()
     query = 'SELECT * FROM tRole;'
 
@@ -215,6 +254,11 @@ def get_roles():
 
 
 def get_role(user_id):
+    """
+    Get user's role from DB
+    :param user_id: int, user id from vk [from_id]
+    :return: int, role id
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -239,6 +283,13 @@ def get_role(user_id):
 
 
 def get_preferences(user_id):
+    """
+    Short version of get_user(), get info about user's preferences from DB
+    :param user_id: int, user id from vk [from_id]
+    :return: dict {user_id: int, role: int,
+    subscribe: bool, report: bool, show_profile: bool, show_report: bool,
+    last_message: int}
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -272,6 +323,11 @@ def get_preferences(user_id):
 
 
 def get_msg(user_id):
+    """
+    Get user's last time of message from DB
+    :param user_id: int, user id from vk [from_id]
+    :return: None / int, unix time of message [date]
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -297,6 +353,12 @@ def get_msg(user_id):
 
 
 def update_msg(user_id, msg_time):
+    """
+    Write new time of last message into DB
+    :param user_id: int, user id from vk [from_id]
+    :param msg_time: int, unix time from vk [date]
+    :return: None
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -330,7 +392,13 @@ def update_msg(user_id, msg_time):
     return
 
 
-def change_preferences(user_id, preference):
+def change_preference(user_id, preference):
+    """
+    Toggles preference in DB
+    :param user_id: int, user id from vk [from_id]
+    :param preference: str, ['cIsSubscribed', 'cIsReported', 'cShowProfile', 'cShowReport']
+    :return: None
+    """
     columns = get_columns('tPreferences')[2:-1]
 
     if type(user_id) != int:
@@ -364,6 +432,12 @@ def change_preferences(user_id, preference):
 
 
 def get_preference(user_id, preference):
+    """
+    Get state of preference from DB
+    :param user_id: int, user id from vk [from_id]
+    :param preference: str, ['cissubscribed', 'cisreported', 'cshowprofile', 'cshowreport']
+    :return: bool
+    """
     columns = get_columns('tPreferences')[2:-1]
 
     if type(user_id) != int:
@@ -394,6 +468,11 @@ def get_preference(user_id, preference):
 
 
 def get_squad(user_id):
+    """
+    Get user's squad from DB
+    :param user_id: int, user id from vk [from_id]
+    :return: str, squad source
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -415,6 +494,17 @@ def get_squad(user_id):
 
 
 def set_profile(user_id, nick, source, practice, theory, guile, wisdom):
+    """
+    Write profile data in DB
+    :param user_id: int, user id from vk [from_id]
+    :param nick: str, user's nickname
+    :param source: str, squad initials
+    :param practice: int
+    :param theory: int
+    :param guile: int
+    :param wisdom: int
+    :return: None
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -494,6 +584,12 @@ def set_profile(user_id, nick, source, practice, theory, guile, wisdom):
 
 
 def get_profile(user_id):
+    """
+    Short version of get_user(), get user's profile from DB
+    :param user_id: int, user id from vk [from_id]
+    :return: dict {user_id: int, nickname: str, squad: str,
+    practice: int, theory: int, guile: int, wisdom: int}
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -524,6 +620,15 @@ def get_profile(user_id):
 
 
 def set_report(user_id, date_rep, income, pure_income, target):
+    """
+    Writes battle report data in DB
+    :param user_id: int, user id from vk [from_id]
+    :param date_rep: datetime.date
+    :param income: int
+    :param pure_income: int, can't be greater of income
+    :param target: int, from 0 to 7
+    :return: None
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -579,12 +684,17 @@ def set_report(user_id, date_rep, income, pure_income, target):
 
     db_close(db, cursor)
 
-    change_preferences(user_id, 'cIsReported')
+    change_preference(user_id, 'cIsReported')
 
     return
 
 
 def get_report(user_id):
+    """
+    Get battle report data from DB
+    :param user_id: int, user id from vk [from_id]
+    :return: dict {user_id: int, date: str(datetime), income: int, pure_income: int, target: int}
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -616,6 +726,14 @@ def get_report(user_id):
 
 
 def set_discipline(user_get, user_set, reason, date):
+    """
+    Add warn for user into DB
+    :param user_get: int, user id from vk [from_id]. That user get warn
+    :param user_set: int, user id from vk [from_id]. That user set warn
+    :param reason: str, reason of warn
+    :param date: int, unix timestamp (rework to datetime)
+    :return: None
+    """
     if type(user_get) != int or type(user_set) != int:
         try:
             user_get = int(user_get)
@@ -654,6 +772,11 @@ def set_discipline(user_get, user_set, reason, date):
 
 
 def get_discipline(user_id):
+    """
+    Get all user's warns from DB
+    :param user_id: int, user id from vk [from_id]
+    :return: list [ dict {from: int, reason: str, time: int(rework for datetime)} ]
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -685,6 +808,12 @@ def get_discipline(user_id):
 
 
 def del_discipline(user_id, count=1):
+    """
+    Delete warns from user in DB
+    :param user_id: int, user id from vk [from_id]
+    :param count: int, default 1, can be greater then count of warns
+    :return: None
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -714,6 +843,13 @@ def del_discipline(user_id, count=1):
 
 
 def set_data(user_id, tag, text):
+    """
+    Write new note into DB
+    :param user_id: int, user id from vk [from_id]
+    :param tag: str, short tag for search
+    :param text: str, text to save
+    :return: None
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -751,6 +887,12 @@ def set_data(user_id, tag, text):
 
 
 def get_data(user_id, tag):
+    """
+    Get note by tag from DB
+    :param user_id: int, user id from vk [from_id]
+    :param tag: str, short tag for search
+    :return: None / text by user/tag
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)
@@ -786,6 +928,12 @@ def get_data(user_id, tag):
 
 
 def del_data(user_id, tag):
+    """
+    Delete note by tag from DB
+    :param user_id: int, user id from vk [from_id]
+    :param tag: str, short tag for search
+    :return: None
+    """
     if type(user_id) != int:
         try:
             user_id = int(user_id)

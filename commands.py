@@ -7,6 +7,8 @@ If you want to expand imports, don't forget to increase cmd_list's globals start
 You can not following this recommendations, but in this case you all doing at your owh risk
 (c) Misden a.k.a. 1nfernoS, 2021
 """
+import copy
+
 import vk_api
 import hw_api
 import kbd_list
@@ -26,10 +28,17 @@ def start(msg, command):
 
 
 def cmd(**kwargs):
-    return list(globals())[18:]
+    """
+    List of all commands here
+    :return: list [ %command_name%: str ]
+    """
+    return list(globals())[19:]
 
 
 def cmd_list(**kwargs):
+    """
+    Send in vk list of commands
+    """
     roles = [0]
 
     if kwargs['role_id'] not in roles:
@@ -44,6 +53,9 @@ def cmd_list(**kwargs):
 
 
 def user(**kwargs):
+    """
+    Send in vk list of squad's user or list of leaders (associates and leaders)
+    """
     roles = [0, 1, 3, 5, 7]
 
     if kwargs['role_id'] not in roles:
@@ -52,13 +64,13 @@ def user(**kwargs):
 
     # TeamLeader
     if kwargs['role_id'] in roles[0:3]:
-        cmd = kwargs['msg']['text'].split()
-        if len(cmd) == 2:
-            cmd[1] = cmd[1].upper()
-            if cmd[1] not in squads.get_squads():
+        com = kwargs['msg']['text'].split()
+        if len(com) == 2:
+            com[1] = com[1].upper()
+            if com[1] not in squads.get_squads():
                 vk_api.send(kwargs['chat'], "Wrong squad")
                 return
-            squad_users = squads.squad_users(cmd[1])
+            squad_users = squads.squad_users(com[1])
             msg = ''
             for i in squad_users:
                 msg = msg + '[id' + str(i) + '|' + str(squad_users[i]) + ']\n'
@@ -67,7 +79,7 @@ def user(**kwargs):
             else:
                 vk_api.send(kwargs['chat'], msg)
             return
-        elif len(cmd) == 1:
+        elif len(com) == 1:
             leaders = list()
             for squad in squads.get_squads():
                 for lead in squads.get_leaders(squad):
@@ -97,6 +109,9 @@ def user(**kwargs):
 
 
 def role(**kwargs):
+    """
+    Apply new role to user by reply or forward
+    """
     roles = [0]
 
     if kwargs['role_id'] not in roles:
@@ -132,7 +147,11 @@ def role(**kwargs):
     if role_id < 0 or role_id > 13:
         vk_api.send(kwargs['chat'], "Wrong role id")
         return
-    if users.count_role(role_id) < role_limit[role_id]:
+    try:
+        limit = users.count_role(role_id) < role_limit[role_id]
+    except KeyError:
+        limit = True
+    if limit:
         users.set_role(user_id, role_id)
         vk_api.send(kwargs['chat'], "Role set!")
     else:
@@ -141,6 +160,9 @@ def role(**kwargs):
 
 
 def role_list(**kwargs):
+    """
+    Send in vk list of all roles
+    """
     roles = [0]
 
     if kwargs['role_id'] not in roles:
@@ -157,7 +179,10 @@ def role_list(**kwargs):
 
 
 def ping(**kwargs):
-    roles = [0, 1, 4]
+    """
+    Send in vk message that bot is working
+    """
+    roles = [0, 1, 3]
 
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
@@ -168,11 +193,17 @@ def ping(**kwargs):
 
 
 def test(**kwargs):
+    """
+    Ummmm... Nothing... Really
+    """
     vk_api.send(kwargs['chat'], kwargs['msg'])
     return
 
 
 def delete(**kwargs):
+    """
+    Delete user and register him by forward or reply
+    """
     roles = [0]
 
     if kwargs['role_id'] not in roles:
@@ -199,6 +230,9 @@ def delete(**kwargs):
 
 
 def kill(**kwargs):
+    """
+    Raises Exception to kill bot. Used to check stability and error logging
+    """
     roles = [0]
 
     if kwargs['role_id'] not in roles:
@@ -209,6 +243,10 @@ def kill(**kwargs):
 
 
 def kbda(**kwargs):
+    """
+    Set target 0 for all squads
+    [WARNING] Long requests, can works double
+    """
     # TeamLeaders only
     roles = [0, 1, 3]
 
@@ -221,6 +259,9 @@ def kbda(**kwargs):
 
 
 def id(**kwargs):
+    """
+    Send in vk id of user if reply or forward? else send chat id
+    """
     roles = [0]
 
     if kwargs['role_id'] not in roles:
@@ -239,6 +280,10 @@ def id(**kwargs):
 
 
 def kbd(**kwargs):
+    """
+    Send in vk keyboard for setting targets
+    """
+    # TODO: Make in conversations only
     # TeamLeaders only
     roles = [0, 1, 3]
 
@@ -247,15 +292,17 @@ def kbd(**kwargs):
         return
 
     # We need to modify keyboard without affecting to original
-    keyboard = dict()
-    for key in kbd_list.target:
-        keyboard[key] = kbd_list.target[key]
-    keyboard['buttons'] = keyboard['buttons'][:-1]
+    keyboard = copy.deepcopy(kbd_list.target)
+    keyboard['buttons'].pop()
     vk_api.send(kwargs['chat'], "Your keyboard!", keyboard)
     return
 
 
 def kbdd(**kwargs):
+    """
+    Send in vk empty keyboard
+    """
+    # TODO: Make in conversations only
     # TeamLeaders only
     roles = [0, 1, 3]
 
@@ -270,6 +317,9 @@ def kbdd(**kwargs):
 
 
 def reg_squad(**kwargs):
+    """
+    Add new squad with source and token
+    """
     # TeamLeaders only
     roles = [0, 1, 3]
 
@@ -277,52 +327,55 @@ def reg_squad(**kwargs):
         vk_api.send(kwargs['chat'], "Access Denied")
         return
 
-    cmd = kwargs['msg']['text'].split()
+    com = kwargs['msg']['text'].split()
 
-    if len(cmd) != 3:
+    if len(com) != 3:
         vk_api.send(kwargs['chat'], "Wrong arguments, squad and token needed")
         return
 
-    if len(cmd[1]) > 2:
+    if len(com[1]) > 2:
         vk_api.send(kwargs['chat'], "Use initials of squad (xx) for squad name")
         return
-    cmd[1] = cmd[1].upper()
+    com[1] = com[1].upper()
 
-    if len(cmd[2]) != 128 or not hw_api.check(cmd[1], cmd[2]):
+    if len(com[2]) != 128 or not hw_api.check(com[1], com[2]):
         vk_api.send(kwargs['chat'], "Wrong token or squad")
         return
     else:
-        squads.reg_squad(cmd[1], cmd[2])
+        squads.reg_squad(com[1], com[2])
         vk_api.send(kwargs['chat'], "Squad registered successfully")
     return
 
 
 def target(**kwargs):
+    """
+    Send target to HW API
+    """
     roles = [0, 1, 3, 5, 7]
 
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
         return
 
-    cmd = kwargs['msg']['text'].split()
+    com = kwargs['msg']['text'].split()
 
     # TeamLeader
     if kwargs['role_id'] in roles[0:3]:
-        if len(cmd) == 3:
+        if len(com) == 3:
 
-            cmd[1] = cmd[1].upper()
-            if cmd[1] not in squads.get_squads():
+            com[1] = com[1].upper()
+            if com[1] not in squads.get_squads():
                 vk_api.send(kwargs['chat'], "Wrong source")
                 return
 
             try:
-                cmd[2] = int(cmd[2])
+                com[2] = int(com[2])
             except ValueError:
                 vk_api.send(kwargs['chat'], "Wrong target, should be number")
                 return
 
-            if 0 <= cmd[2] <= 7:
-                if cmd[2] == fraction:
+            if 0 <= com[2] <= 7:
+                if com[2] == fraction:
                     vk_api.send(kwargs['chat'], 'Attack on yourself')
                     return
             else:
@@ -330,20 +383,20 @@ def target(**kwargs):
                 vk_api.send(kwargs['chat'], 'Wrong target')
                 return
 
-            hw_api.set_target(cmd[1], cmd[2])
+            hw_api.set_target(com[1], com[2])
             vk_api.send(kwargs['chat'], "Target sent!")
             return
 
-        elif len(cmd) == 2:
+        elif len(com) == 2:
 
             try:
-                cmd[1] = int(cmd[1])
+                com[1] = int(com[1])
             except ValueError:
                 vk_api.send(kwargs['chat'], "Wrong target, should be number")
                 return
 
-            if 0 <= cmd[1] <= 7:
-                if cmd[1] == fraction:
+            if 0 <= com[1] <= 7:
+                if com[1] == fraction:
                     vk_api.send(kwargs['chat'], 'Attack on yourself')
                     return
             else:
@@ -351,7 +404,7 @@ def target(**kwargs):
                 vk_api.send(kwargs['chat'], 'Wrong target')
                 return
 
-            hw_api.set_target(str(fraction), cmd[1])
+            hw_api.set_target(str(fraction), com[1])
             vk_api.send(kwargs['chat'], "target sent!")
             return
 
@@ -361,18 +414,18 @@ def target(**kwargs):
 
     # Squad Leader
     else:
-        if len(cmd) != 2:
+        if len(com) != 2:
             vk_api.send(kwargs['chat'], "Wrong arguments, target needed")
             return
 
         try:
-            cmd[1] = int(cmd[1])
+            com[1] = int(com[1])
         except ValueError:
             vk_api.send(kwargs['chat'], "Wrong target, should be number")
             return
 
-        if 0 <= cmd[1] <= 7:
-            if cmd[1] == fraction:
+        if 0 <= com[1] <= 7:
+            if com[1] == fraction:
                 vk_api.send(kwargs['chat'], 'Attack on yourself')
                 return
         else:
@@ -381,13 +434,15 @@ def target(**kwargs):
             return
 
         source = users.get_squad(kwargs['msg']['from_id'])
-        hw_api.set_target(source, cmd[1])
+        hw_api.set_target(source, com[1])
         vk_api.send(kwargs['chat'], "target sent!")
         return
 
 
 def squad_list(**kwargs):
-
+    """
+    Send in vk squad list
+    """
     roles = [0, 1, 3]
 
     if kwargs['role_id'] not in roles:
@@ -401,6 +456,9 @@ def squad_list(**kwargs):
 
 
 def home(**kwargs):
+    """
+    Return to home page if bot broke
+    """
     if kwargs['chat'] > 2000000000:
         return
     kb = kbd_list.main
@@ -410,6 +468,10 @@ def home(**kwargs):
 
 # TODO: Remove after tests
 def query(**kwargs):
+    """
+    Execute query directly into DB and send result into chat
+    !!! [DANGER] !!! Use it only if you 101% sure what are you doing
+    """
     roles = [0]
 
     if kwargs['role_id'] not in roles:

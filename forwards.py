@@ -58,6 +58,9 @@ def parse(msg, fwd):
 
 
 def get_time(fwd, chat_id, role_id):
+    """
+    Send in vk [date] of forward
+    """
     roles = [0]  # maybe add testers
     if role_id not in roles:
         return
@@ -73,6 +76,9 @@ def get_time(fwd, chat_id, role_id):
 
 
 def distribution(fwd, chat_id, role_id, user_id):
+    """
+    Start distribution of battle results for subscribed
+    """
     roles = [role_id]  # maybe here will be role limit
     if role_id not in roles:
         return
@@ -89,7 +95,9 @@ def distribution(fwd, chat_id, role_id, user_id):
 
 
 def share(user_id, text, role_id):
-
+    """
+    Parses share and write into DB
+    """
     user_info = users.get_user(user_id)
     shar = text.split(sep='\n\n')
 
@@ -168,6 +176,9 @@ def share(user_id, text, role_id):
 
 
 def profile(user_id, text, role_id):
+    """
+    Parses profile and write into DB
+    """
 
     prof = text.split(sep='\n\n')[-3:-1]
 
@@ -259,6 +270,9 @@ def profile(user_id, text, role_id):
 
 
 def battle(user_id, text, role_id):
+    """
+    Parses battle report and write it into DB
+    """
     roles = [0, 1, 3, 5, 7, 9, 11]
 
     if role_id not in roles:
@@ -325,7 +339,6 @@ def battle(user_id, text, role_id):
 
     vk_api.send(user_id, result)
 
-    # TODO: Find reason in change_preference
     users.set_report(user_id, date, income, pure, target)
     vk_api.send(user_id, "Battle result successfully written")
     return

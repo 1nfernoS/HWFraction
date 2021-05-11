@@ -19,6 +19,12 @@ params_dist = {'message': {'message': 'lol'}, 'list_ids': 762486, 'run_now': 1}
 
 
 def set_target(name, target):
+    """
+    Request for target by source
+    :param name: str, squad's initials
+    :param target: int, from 0 to 7
+    :return: None
+    """
     params["source"] = name
     params["target"] = target
     params["token"] = get_token(name)
@@ -32,6 +38,12 @@ def set_target(name, target):
 
 
 def check(name, token):
+    """
+    Send request to attack yourself for check is token valid
+    :param name: str, squad's initials
+    :param token: str
+    :return: bool, is token valid
+    """
     params["source"] = name
     params["target"] = fraction
     params["token"] = token
@@ -46,6 +58,11 @@ def check(name, token):
 
 
 def distribute(msg="test"):
+    """
+    Send message for distribution
+    :param msg: str, text
+    :return: None
+    """
     params_dist['message']['message'] = msg
 
     if debug:
@@ -56,7 +73,11 @@ def distribute(msg="test"):
 
 
 def remove_all():
-    # !!!It takes too long, VK send second request
+    """
+    Set target 0 for all squads
+    [WARNING] Long requests, can works double
+    :return: None
+    """
     for src in get_squads():
         params["source"] = src
         params["target"] = 0

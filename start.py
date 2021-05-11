@@ -69,6 +69,10 @@ def index():
 
 @app.route('/', methods=['POST'])
 def handler():
+    """
+    Start point for pre-processing request from vk
+    :return: response('ok', 200) / confirmation token
+    """
     try:
         r = request.data
         data = json.loads(r)
@@ -81,7 +85,6 @@ def handler():
     except KeyError:
         return make_response("Wrong data provided", 400)
     except TypeError:
-        print(data)
         return make_response("Wrong data provided", 400)
 
     if type_msg == 'confirmation':
@@ -105,11 +108,21 @@ def handler():
 
 @app.errorhandler(500)
 def internal_error(*args):
+    """
+    Send in errors chat info about exception and continue working
+    Something like except: pass
+    :return: response('ok', 200)
+    """
     vk_api.send(settings.errors_chat, str(format_exc(-5)))
     return make_response('ok', 200)
 
 
 def message(msg):
+    """
+    Main processing with message
+    :param msg: dict, message object from vk [object][message]
+    :return: None
+    """
 
     time = int(msg['date'])
     text = str(msg['text'])

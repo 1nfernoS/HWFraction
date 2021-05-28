@@ -45,13 +45,13 @@ after_response.AfterResponse(app)
 #       2.5 Statistics from battle to squads chats
 #   3.Api
 #       + 3.1 Changing token
-#       -+ 3.2 Keyboard with targets
-#       -+ 3.2.1 Keyboard with targets in command chat
+#       +- 3.2 Keyboard with targets
+#       + 3.2.1 Keyboard with targets in command chat
 #       +- 3.3 Access to LoS (Leader of Squad)
 #       +- 3.3.1 Changing LoS
 #   //5.Settings
-#       5.1 Customize Notifications
-#       5.2 Enabling distribution
+#       +- 5.1 Customize Notifications
+#       +- 5.2 Enabling distribution
 #       + 5.3 Access control
 #       + 5.4 Commands for parse
 #       5.4.1 Customize presets

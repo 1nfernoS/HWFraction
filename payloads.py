@@ -6,7 +6,7 @@ import copy
 
 import vk_api
 from hw_api import set_target
-from settings import fraction
+from settings import fraction, fractions
 import kbd_list
 
 import db.users as users
@@ -29,10 +29,64 @@ def page(**kwargs):
     pl = kwargs['payload']
     kbd = keyboard(pl, kwargs['role_id'], kwargs['msg']['from_id'])
     # kbd = getattr(kbd_list, pl)
-    # TODO: Edit kbd if role
-    # TODO: Make page titles (Battle_Push page looks not safe)
-    msg = kwargs.get('flag', pl.title() + ' page')
+    # TODO: +-Edit kbd if role
+    # TODO: +-Make page titles (Battle_Push page looks not safe)
+    msg = kwargs.get('flag', page_text(pl, kwargs['msg']))
     vk_api.send(kwargs['chat'], msg, kbd)
+    return
+
+
+def page_text(name, message):
+    """
+    Generating texts for pages
+    :param name: str, name of page
+    :param message: dict, message object from vk [object][message]
+    :return: text for page
+    """
+    if name == 'main':
+        user_id = message['from_id']
+        user_data = users.get_user(user_id)
+        # dict {user_id: int, role: int,
+        #     subscribe: bool, report: bool, show_profile: bool, show_report: bool,
+        #     nickname: str, squad: str, practice: int, theory: int, guile: int, wisdom: int;
+        #     if report True: date_report: str, income: int, pure_income: int, target: int}
+        text = 'Hello, ' + user_data['nickname'] + '\n\n'
+        if user_data['show_profile']:
+            # stat's string
+            text += '&#128225;: ' + str(user_data['practice']) + '; &#128190;: ' + str(user_data['theory']) + \
+                    '; &#128241;: ' + str(user_data['guile']) + '; &#128270;: ' + str(user_data['wisdom']) + '\n'
+            # overall string
+            text += '&#9876;: ' + str(int(user_data['practice'] + 1.5*user_data['guile'])) + \
+                    '; &#128272;: ' + str(int(user_data['theory'] + 1.5*user_data['wisdom'])) + '\n\n'
+        if user_data['show_report']:
+            if user_data['report']:
+                text += '&#129297;: ' + str(user_data['income']) + '; &#128181;: ' + str(user_data['pure_income']) +\
+                        '; &#9989;: ' + str(fractions[user_data['target']]) + '\n\n'
+            else:
+                text += 'Today you don\'t send report\n\n'
+        # TODO: get time before battle
+        text += 'Time left for battle: ' + str('undefined')
+        return text
+    elif name == 'settings':
+        text = 'Settings page'
+        return text
+    elif name == 'stats':
+        # TODO: Remove brackets after complete stats
+        text = 'Statistics.\nHere you can watch your performance (not working)'
+        return text
+    elif name == 'control':
+        text = 'Control page.\nAll for your business'
+        return text
+    elif name == 'battle_push':
+        text = 'Manage pushes for battle'
+        return text
+    elif name == 'target':
+        user_id = message['from_id']
+        role_id = users.get_role(user_id)
+        text = 'Set target for ' + ('fraction' if role_id in [0, 1, 3] else users.get_squad(user_id))
+        return text
+    else:
+        pass
     return
 
 
@@ -46,7 +100,7 @@ def keyboard(kb, role, user):
     """
     orig_kbd = getattr(kbd_list, kb)
     kbd = copy.deepcopy(orig_kbd)
-    # TODO: Role lists for flags
+    # TODO: Role lists for flags (not sure is need or not)
     if kb == 'main':
         if role in [0, 1, 3, 5, 7]:
             pass
@@ -98,12 +152,15 @@ def keyboard(kb, role, user):
             # Hide notes and manage list
             kbd['buttons'].pop(1)
     elif kb == 'battle_push':
+        """
         if role in [0, 1, 3]:
             # TODO: Squad kbd
             kbd['buttons'].pop(0)
             kbd['buttons'].pop(0)
         else:
             pass
+        """
+        pass
     else:
         pass
     return kbd
@@ -129,7 +186,7 @@ def target(**kwargs):
     Set target buttons
     """
     roles = [0, 1, 3, 5, 7]
-    # TODO: in multiThreading
+    # TODO: in multiThreading (or somehow after request)
 
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
@@ -152,7 +209,7 @@ def stats(**kwargs):
     """
     Get statistics for type
     """
-    # TODO: Generating stats
+    # TODO: Generating stats (list or graphics)
     blocked(kwargs['chat'])
     return
 
@@ -161,7 +218,7 @@ def inputs(**kwargs):
     """
     Pre-process raw input
     """
-    # TODO: Make inputs are possible
+    # TODO: Make inputs are possible (and check for injections)
     blocked(kwargs['chat'])
     return
 

@@ -283,12 +283,15 @@ def kbd(**kwargs):
     """
     Send in vk keyboard for setting targets
     """
-    # TODO: Make in conversations only
     # TeamLeaders only
     roles = [0, 1, 3]
 
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    if kwargs['chat'] < 2000000000:
+        vk_api.send(kwargs['chat'], "This is not conversation!")
         return
 
     # We need to modify keyboard without affecting to original
@@ -302,12 +305,15 @@ def kbdd(**kwargs):
     """
     Send in vk empty keyboard
     """
-    # TODO: Make in conversations only
     # TeamLeaders only
     roles = [0, 1, 3]
 
     if kwargs['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    if kwargs['chat'] < 2000000000:
+        vk_api.send(kwargs['chat'], "This is not conversation!")
         return
 
     keyboard = {'one_time': True, 'buttons': []}

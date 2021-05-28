@@ -9,12 +9,14 @@ import requests
 import time
 
 from db.squads import get_token, get_squads
-from settings import fraction, debug
+from settings import fraction, debug, ignored_squads
 
 url = "https://aegis.hackerwars.ru/set_target"
 params = {"key": "466F2FFC", "source": "", "token": "", "target": 0}
+headers = {'User-Agent': 'HWFraction: ' + str(fraction)}
 
 url_dist = 'https://broadcast.vkforms.ru/api/v2/broadcast?token=api_83877_pI44cDqGF88EyHn2hf5OZhnn'
+# TODO: set id to 690010
 params_dist = {'message': {'message': 'lol'}, 'list_ids': 762486, 'run_now': 1}
 
 
@@ -31,9 +33,9 @@ def set_target(name, target):
 
     if debug:
         time.sleep(2)
-        print("request to " + url + " with " + str(params))
+        print("request to " + url + " with " + str(params) + ' and ' + str(headers))
     else:
-        requests.get(url, params)
+        requests.get(url, params, headers=headers)
     return
 
 
@@ -47,13 +49,13 @@ def check(name, token):
     params["source"] = name
     params["target"] = fraction
     params["token"] = token
-    print("request to " + url + " with " + str(params))
+    print("request to " + url + " with " + str(params) + ' and ' + str(headers))
 
     if debug:
         time.sleep(2)
         return True
     else:
-        r = requests.get(url, params)
+        r = requests.get(url, params, headers=headers)
         return 'Attack on yourself forbidden.' in str(r.content)
 
 
@@ -79,13 +81,16 @@ def remove_all():
     :return: None
     """
     for src in get_squads():
-        params["source"] = src
-        params["target"] = 0
-        params["token"] = get_token(src)
-
-        if debug:
-            time.sleep(2)
-            print("request to " + url + " with " + str(params))
+        if src in ignored_squads:
+            pass
         else:
-            requests.get(url, params)
+            params["source"] = src
+            params["target"] = 0
+            params["token"] = get_token(src)
+
+            if debug:
+                time.sleep(2)
+                print("request to " + url + " with " + str(params) + ' and ' + str(headers))
+            else:
+                requests.get(url, params, headers=headers)
     return

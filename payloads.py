@@ -47,10 +47,8 @@ def keyboard(kb, role, user):
     orig_kbd = getattr(kbd_list, kb)
     kbd = copy.deepcopy(orig_kbd)
     # TODO: Role lists for flags
-    leader = role in [0, 1, 5]
-    associate = role in [3, 7]
     if kb == 'main':
-        if leader or associate:
+        if role in [0, 1, 3, 5, 7]:
             pass
         else:
             # Hide control page
@@ -83,25 +81,29 @@ def keyboard(kb, role, user):
             prefs[2]['color'] = 'negative'
             prefs[2]['action']['label'] = 'Subscribe'
 
-        if role not in [0, 5, 7]:
+        if role in [0, 1, 3, 5, 7]:
             pass
         else:
             # Hide push page
             kbd['buttons'].pop(1)
     elif kb == 'stats':
-        if leader or associate:
+        if role in [0, 1, 3, 5, 7, 9]:
             pass
         else:
             # Hide squad stats
             kbd['buttons'].pop(1)
         pass
     elif kb == 'control':
-        if associate:
+        if role in [3, 7]:
             # Hide notes and manage list
             kbd['buttons'].pop(1)
-        if role not in [0, 5, 7]:
-            # Hide reports list
-            kbd['buttons'].pop(-2)
+    elif kb == 'battle_push':
+        if role in [0, 1, 3]:
+            # TODO: Squad kbd
+            kbd['buttons'].pop(0)
+            kbd['buttons'].pop(0)
+        else:
+            pass
     else:
         pass
     return kbd

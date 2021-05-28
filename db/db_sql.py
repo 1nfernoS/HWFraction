@@ -61,7 +61,7 @@ def get_tables():
     cursor.execute(query)
 
     for r in cursor.fetchall():
-        tables.append(r[0])
+        tables.append(r[0].lower())
 
     db_close(db, cursor)
     return tables
@@ -75,8 +75,9 @@ def get_columns(table):
     """
     db, cursor = db_open()
 
-    if str(table).lower() not in get_tables():
-        raise NameError("The table '" + table + "' doesn't exists!")
+    tables = get_tables()
+    if str(table).lower() not in tables:
+        raise NameError("The table '" + table + "' doesn't exists!\n" + str(tables))
 
     columns = list()
     query = 'SELECT COLUMN_NAME ' \
@@ -99,9 +100,9 @@ def get_column_types(table):
     :return: dict { %column_name%: str : %data_type%: str}
     """
     db, cursor = db_open()
-
-    if str(table).lower() not in get_tables():
-        raise NameError("The table '" + table + "' doesn't exists!")
+    tables = get_tables()
+    if str(table).lower() not in tables:
+        raise NameError("The table '" + table + "' doesn't exists!\n" + str(tables))
 
     columns = dict()
     query = 'SELECT COLUMN_NAME, COLUMN_TYPE ' \

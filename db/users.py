@@ -414,8 +414,8 @@ def change_preference(user_id, preference):
             preference = str(preference)
         except ValueError:
             raise TypeError("Preference should be str type")
-    if preference not in columns:
-        raise ValueError("There is no option \'"+preference+"\'")
+    if preference.lower() not in columns:
+        raise ValueError("There is no option \'"+preference+"\'\n" + str(columns))
 
     state = get_preference(user_id, preference)
     query = 'UPDATE tPreferences' \
@@ -453,8 +453,8 @@ def get_preference(user_id, preference):
             preference = str(preference)
         except ValueError:
             raise TypeError("Preference should be str type")
-    if preference not in columns:
-        raise ValueError("There is no option \'" + preference + "\'")
+    if preference.lower() not in columns:
+        raise NameError("There is no option \'"+preference+"\'\n" + str(columns))
 
     query = 'SELECT ' + preference + ' FROM vUser WHERE cIdUser = ' + str(user_id) + ';'
 

@@ -10,6 +10,7 @@ __pycache__/
 OLDmain.py
 settings.py
 Msg_Examples/
+useful_scripts/
 
 # Distribution / packaging
 .Python

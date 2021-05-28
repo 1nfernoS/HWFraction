@@ -12,7 +12,7 @@ import copy
 import vk_api
 import hw_api
 import kbd_list
-from settings import fraction, start_time
+from settings import fraction, start_time, ignored_squads
 
 import db.users as users
 import db.squads as squads
@@ -32,7 +32,7 @@ def cmd(**kwargs):
     List of all commands here
     :return: list [ %command_name%: str ]
     """
-    return list(globals())[19:]
+    return list(globals())[20:]
 
 
 def cmd_list(**kwargs):
@@ -363,11 +363,6 @@ def target(**kwargs):
     if kwargs['role_id'] in roles[0:3]:
         if len(com) == 3:
 
-            com[1] = com[1].upper()
-            if com[1] not in squads.get_squads():
-                vk_api.send(kwargs['chat'], "Wrong source")
-                return
-
             try:
                 com[2] = int(com[2])
             except ValueError:
@@ -383,7 +378,22 @@ def target(**kwargs):
                 vk_api.send(kwargs['chat'], 'Wrong target')
                 return
 
-            hw_api.set_target(com[1], com[2])
+            if com[1] != 'all':
+                com[1] = com[1].upper()
+                if com[1] not in squads.get_squads():
+                    vk_api.send(kwargs['chat'], "Wrong source")
+                    return
+                if com[1] in ignored_squads:
+                    vk_api.send(kwargs['chat'], "Dead squad")
+                    return
+
+                hw_api.set_target(com[1], com[2])
+            else:
+                for source in squads.get_squads():
+                    if source in ignored_squads:
+                        pass
+                    else:
+                        hw_api.set_target(source, com[2])
             vk_api.send(kwargs['chat'], "Target sent!")
             return
 
@@ -452,6 +462,33 @@ def squad_list(**kwargs):
     msg = ', '.join(squads.get_squads())
 
     vk_api.send(kwargs['chat'], msg)
+    return
+
+
+def del_squad(**kwargs):
+    """
+    Delete squad from DB
+    """
+    # TeamLeaders only
+    roles = [0, 1, 3]
+
+    if kwargs['role_id'] not in roles:
+        vk_api.send(kwargs['chat'], "Access Denied")
+        return
+
+    com = kwargs['msg']['text'].split()
+    if len(com) != 2:
+        vk_api.send(kwargs['chat'], "Wrong argument, source is needed")
+        return
+
+    if com[1] not in squads.get_squads():
+        vk_api.send(kwargs['chat'], "Squad already doesn't exists")
+        return
+
+    # TODO: Check for user in squad
+
+    squads.del_squad(com[1])
+    vk_api.send(kwargs['chat'], "Squad deleted")
     return
 
 

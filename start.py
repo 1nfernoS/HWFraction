@@ -75,7 +75,7 @@ def handler():
     """
     try:
         r = request.data
-        data = json.loads(r)
+        data = json.loads(str(r))
     except JSONDecodeError:
         return make_response("No data provided", 400)
 

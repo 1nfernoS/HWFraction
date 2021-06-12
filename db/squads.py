@@ -1,299 +1,74 @@
-"""
-This module works with squad's entity in database - 1 table, but sometimes have link to profile
-Remember, this module just works with database, don't append here other code (i.e. checking timer for attack etc)
-Make different def-s to INSERT, DELETE and SELECT, and don't forget to have all 3 def-s (if it needed)
-Don't forget to try convert data type (for simplify errors)
-    and check data type for excepting MySQL Errors (Trust me, you don't want to drop database)
-(c) Misden a.k.a. 1nfernos, 2021
-"""
-from db.db_sql import db_open, db_close
-from settings import fraction
-import time
+from db.db_sql import query
 
-
-def get_token(source):
-    """
-    Get squad token by source from DB
-    :param source: str, squad's initials
-    :return: str, API token
-    """
-    db, cursor = db_open()
-
-    if type(source) != str:
-        try:
-            source = str(source)
-        except ValueError:
-            raise TypeError("Source should be str type")
-    elif len(source) > 2:
-        raise ValueError("Source length should be less or equal 2 symbols")
-    source = source.upper()
-
-    data = (source,)
-    query = 'SELECT cToken FROM tSquads WHERE cSource = %s;'
-    cursor.execute(query, data)
-
-    res = cursor.fetchall()[0][0]
-
-    db_close(db, cursor)
-    return res
-
-
-def get_squads():
-    """
-    Get list of squads from DB
-    :return: list [ %squad's_source%: str ]
-    """
-    db, cursor = db_open()
-
-    squads = list()
-    query = 'SELECT cSource FROM tSquads;'
-    cursor.execute(query)
-
-    for i in cursor.fetchall():
-        squads.append(i[0])
-
-    db_close(db, cursor)
-    return squads
-
-
-def count_squads():
-    """
-    Don't remember why...
-    Count all squads, including fraction as squad, from DB
-    :return: int, count of all squads
-    """
-    db, cursor = db_open()
-
-    query = 'SELECT COUNT(*) FROM tSquads;'
-    cursor.execute(query)
-    res = cursor.fetchall()[0][0]
-
-    db_close(db, cursor)
-    return res
+# TODO: delete(?), set chat, set/del remind, set/del target
 
 
 def reg_squad(source, token):
-    """
-    Write squad and token into DB
-    :param source: str, squad's initials
-    :param token: str, API token
-    :return: None
-    """
-    db, cursor = db_open()
+    source = str(source)
+    if len(source) > 2 or len(source) == 0:
+        raise ValueError("source length more than 2 or empty")
 
-    if type(source) != str:
-        try:
-            source = str(source)
-        except ValueError:
-            raise TypeError("Source should be str type")
-    elif len(source) > 2:
-        raise ValueError("Source's length should be less or equal 2 symbols")
-    source = source.upper()
+    token = str(token)
+    if len(token) != 128:
+        raise ValueError("token length is not 128")
 
-    if type(token) != str:
-        try:
-            token = str(token)
-        except ValueError:
-            raise TypeError("Token should be str type")
-    elif len(token) != 128:
-        raise ValueError("Token's length should be equal 128")
-
-    query = 'SELECT cSource FROM tSquads WHERE cSource = %s;'
-    cursor.execute(query, (source,))
-    if len(cursor.fetchall()) == 0:
-        data = (source, token)
-        query = 'INSERT INTO tSquads (cSource, cToken) VALUE (%s, %s);'
+    if query('SELECT COUNT(*) FROM t_squad WHERE c_source = %s', source)[0][0] == 0:
+        query("INSERT INTO t_squad (c_source, c_token) VALUE %s, %s", source, token)
     else:
-        data = (token, source)
-        query = 'UPDATE tSquads SET cToken = %s WHERE cSource = %s;'
-    cursor.execute(query, data)
-    db.commit()
-
-    db_close(db, cursor)
+        query("UPDATE t_squad, SET c_token = %s WHERE c_source = %s", token, source)
     return
 
 
-def set_chat(source, id_chat):
-    """
-    Write chat id of squad into DB
-    :param source: str, squad's initials
-    :param id_chat: int, greater than 2000000000 [peer_id]
-    :return: None
-    """
-    db, cursor = db_open()
+def get_token(source):
+    source = str(source)
+    if len(source) > 2 or len(source) == 0:
+        raise ValueError("source length more than 2 or empty")
 
-    if type(source) != str:
-        try:
-            source = str(source)
-        except ValueError:
-            raise TypeError("Source should be str type")
-    elif len(source) > 2:
-        raise ValueError("Source's length should be less or equal 2 symbols")
-    source = source.upper()
+    if query("SELECT COUNT(*) FROM t_squad WHERE c_source = %s", source)[0] == 0:
+        raise ValueError("Unknown squad")
 
-    query = 'SELECT * FROM tSquads WHERE cSource = %s;'
-    cursor.execute(query, (source,))
-    if len(cursor.fetchall()) == 0:
-        raise NameError("There is no \'" + source + "\' squad")
+    token = query("SELECT c_token FROM t_squad WHERE c_source = %s", source)[0][0]
+    return token
 
-    if type(id_chat) != int:
-        try:
-            id_chat = int(id_chat)
-        except ValueError:
-            raise TypeError("Chat Id should be int type")
-    elif 0 > id_chat > 2000000000:
-        raise ValueError("Chat Id should have positive value less than 2000000000")
 
-    data = (id_chat, source)
-    query = 'UPDATE tSquads SET cIdChat = %s WHERE cSource = %s;'
-    cursor.execute(query, data)
-    db.commit()
+def get_squads():
+    res = query("SELECT c_source FROM t_squad;")
+    squad_list = list()
+    for squad in res:
+        squad_list.append(squad[0])
+    return squad_list
 
-    db_close(db, cursor)
+
+def change_active(source):
+    source = str(source)
+    if len(source) > 2 or len(source) == 0:
+        raise ValueError("source length more than 2 or empty")
+
+    if query("SELECT COUNT(*) FROM t_squad WHERE c_source = %s", source)[0][0] == 0:
+        raise ValueError("Unknown squad")
+
+    state = bool(query("SELECT c_is_active FROM t_squad WHERE c_source = %s", source)[0][0])
+
+    query("UPDATE t_squad SET c_is_active = %s WHERE c_source = %s", not state, source)
     return
 
 
-def get_leaders(source):
-    """
-    Get list of leaders or associates in squad from DB
-    :param source: str, squad's initials
-    :return: list [ %user_id%: int ]
-    """
-    db, cursor = db_open()
+def set_chat(source, chat_id):
+    source = str(source)
+    if len(source) > 2 or len(source) == 0:
+        raise ValueError("source length more than 2 or empty")
 
-    leaders = list()
+    if query("SELECT COUNT(*) FROM t_squad WHERE c_source = %s", source)[0][0] == 0:
+        raise ValueError("Unknown squad")
 
-    if type(source) != str:
-        try:
-            source = str(source)
-        except ValueError:
-            raise TypeError("Source should be str type")
-    elif len(source) > 2:
-        raise ValueError("Source's length should be less or equal 2")
-    source = source.upper()
+    try:
+        chat_id = int(chat_id)
+    except ValueError:
+        raise TypeError("chat_id is not int")
 
-    data = (source,)
-    query = 'SELECT cIdUser FROM vUser ' \
-            'WHERE cSquad = %s AND (cIdRole = 0 OR cIdRole = 1 OR cIdRole = 3 OR cIdRole = 5 OR cIdRole = 7);'
-    cursor.execute(query, data)
+    if chat_id < 2000000000:
+        raise ValueError("chat_id below 2000000000")
 
-    for i in cursor.fetchall():
-        leaders.append(i[0])
-
-    db_close(db, cursor)
-    return leaders
-
-
-def squad_users(source):
-    """
-    Get all users in squad from DB
-    :param source: str, squad's initials
-    :return: dict { %user_id%: int, %nickname%: str }
-    """
-    if type(source) != str:
-        try:
-            source = str(source)
-        except ValueError:
-            raise TypeError("Source should be str type")
-    elif len(source) > 2:
-        raise ValueError("Source's length should be less or equal 2")
-    source = source.upper()
-
-    user_list = dict()
-    query = 'SELECT cIdUser, cNickname FROM vUser WHERE cSquad = %s;'
-
-    db, cursor = db_open()
-
-    cursor.execute(query, (source,))
-    res = cursor.fetchall()
-
-    db_close(db, cursor)
-
-    for i in res:
-        user_list[i[0]] = i[1]
-
-    return user_list
-
-
-def set_target(source, target, timer):
-    """
-    Write timer data for set target into DB
-    :param source: str, squad's initials
-    :param target: int, from 0 to 7
-    :param timer: int, unix timestamp(rework into datetime)
-    :return: None
-    """
-    if type(source) != str:
-        try:
-            source = str(source)
-        except ValueError:
-            raise TypeError("Source should be str type")
-    elif len(source) > 2:
-        raise ValueError("Source's length should be less or equal 2")
-    source = source.upper()
-
-    query = 'SELECT * FROM tSquads WHERE cSource = %s;'
-
-    db, cursor = db_open()
-
-    cursor.execute(query, (source,))
-    res = cursor.fetchall()
-
-    db_close(db, cursor)
-
-    if len(res) == 0:
-        raise NameError("There is no \'" + source + "\' squad")
-
-    if type(target) != int:
-        try:
-            target = int(target)
-        except ValueError:
-            raise TypeError("Target should be int type")
-    elif target == fraction or target < 0 or target > 7:
-        raise ValueError("Target should have positive value less than 8 and not your fraction itself")
-
-    if type(timer) != int:
-        try:
-            timer = int(timer)
-        except ValueError:
-            raise TypeError("Time should be int type")
-    elif timer < int(time.time()):
-        raise ValueError("Time should have greater value than now (unix)")
-
-    data = (target, timer, source)
-    query = 'UPDATE tSquads SET cTarget = %s, cTime = %s WHERE cSource = %s;'
-
-    db, cursor = db_open()
-
-    cursor.execute(query, data)
-    db.commit()
-
-    db_close(db, cursor)
+    query("UPDATE t_squad SET c_id_chat = %s WHERE c_source = %s", chat_id, source)
     return
 
-
-def del_squad(source):
-    """
-    Delete squad from DB
-    :param source: str, squad's initials
-    :return: None
-    """
-    if type(source) != str:
-        try:
-            source = str(source)
-        except ValueError:
-            raise TypeError("Source should be str type")
-    elif len(source) > 2:
-        raise ValueError("Source's length should be less or equal 2 symbols")
-    source = source.upper()
-
-    data = (source,)
-    query = 'DELETE FROM tSquads WHERE cSource = %s;'
-
-    db, cursor = db_open()
-
-    cursor.execute(query, data)
-    db.commit()
-
-    db_close(db, cursor)
-    return

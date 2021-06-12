@@ -16,14 +16,14 @@ from settings import fraction, start_time, ignored_squads
 
 import db.users as users
 import db.squads as squads
-from db.db_sql import execute
+from db.db_sql import query
 
 
 def start(msg, command):
     chat = msg['peer_id']
     user_id = msg['from_id']
-    role_id = users.get_role(user_id)
-    globals()[command](msg=msg, chat=chat, role_id=role_id)
+    user = users.get_user(user_id)
+    globals()[command](msg=msg, chat=chat, user=user)
     return
 
 
@@ -40,8 +40,9 @@ def cmd_list(**kwargs):
     Send in vk list of commands
     """
     roles = [0]
+    user = kwargs['user']
 
-    if kwargs['role_id'] not in roles:
+    if user['role_id'] not in roles:
         vk_api.send(kwargs['chat'], "Access Denied")
         return
 
@@ -510,7 +511,7 @@ def home(**kwargs):
 
 
 # TODO: Remove after tests
-def query(**kwargs):
+def db_query(**kwargs):
     """
     Execute query directly into DB and send result into chat
     !!! [DANGER] !!! Use it only if you 101% sure what are you doing
@@ -522,7 +523,7 @@ def query(**kwargs):
         return
 
     q = kwargs['msg']['text'].replace('/query ', '')
-    res = execute(q)
+    res = query(q)
     vk_api.send(kwargs['msg']['from_id'], res)
     vk_api.send(kwargs['chat'], "Result is in your chat")
 

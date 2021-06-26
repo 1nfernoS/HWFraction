@@ -3,15 +3,19 @@ from datetime import date as dt
 import time
 
 from db.db_sql import query
+from db.squads import _validate_source
 from settings import fraction
 
 
-def update_msg(user_id, msg_time):
+# TODO: valid_user/date/stats/etc(?)
+
+
+def _validate_user(user_id):
     """
-    Write new time of last message into DB
-    :param user_id: int, user id from vk [from_id]
-    :param msg_time: int, unix time from vk [date]
-    :return: None
+    Check that user_id is valid for vk
+    :param user_id: int
+    :raise ValueError - wrong value
+    :raise TypeError - wrong type (or can't be cast to type)
     """
     try:
         user_id = int(user_id)
@@ -21,6 +25,19 @@ def update_msg(user_id, msg_time):
     if user_id < 0 or user_id > 2000000000:
         # not bot and not chat
         raise ValueError("user_id below 0 or higher 2000000000")
+    return
+
+
+def update_msg(user_id, msg_time):
+    """
+    Write new time of last message into DB
+    :param user_id: int, id vk [from_id]
+    :param msg_time: int, unix time vk [date]
+    :raise KeyError - user_id doesn't in DB
+    :raise ValueError - wrong time value
+    :raise TypeError - wrong time type (or can't be cast to type)
+    """
+    _validate_user(user_id)
 
     if query('SELECT COUNT(*) FROM t_user WHERE c_id_user = %s', user_id)[0][0] == 0:
         raise KeyError('user_id doesn\'t exists')
@@ -43,14 +60,13 @@ def update_msg(user_id, msg_time):
 
 # Overall user's handler
 def reg_user(user_id):
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        raise TypeError("user_id is not int")
-
-    if user_id < 0 or user_id > 2000000000:
-        # not bot and not chat
-        raise ValueError("user_id below 0 or higher 2000000000")
+    """
+    Adds new user into DB
+    :param user_id: id vk [from_id]
+    :raise ValueError - wrong value
+    :raise TypeError - wrong type (or can't be cast to type)
+    """
+    _validate_user(user_id)
 
     if query('SELECT COUNT(*) FROM t_user WHERE c_id_user = %s', user_id)[0][0] != 0:
         raise KeyError('user_id already exists')
@@ -61,14 +77,31 @@ def reg_user(user_id):
 
 
 def get_user(user_id):
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        raise TypeError("user_id is not int")
-
-    if user_id < 0 or user_id > 2000000000:
-        # not bot and not chat
-        raise ValueError("user_id below 0 or higher 2000000000")
+    """
+    Get user data from DB by vk_id [from_id]
+    :param user_id: int, id from vk
+    :return: dict, {user_id: int,
+                    role_id: int,
+                    subscribe: bool,
+                    show_profile: bool,
+                    show_report: bool,
+                    nickname: str,
+                    lvl: int,
+                    squad: str,
+                    practice: int,
+                    theory: int,
+                    guile: int,
+                    wisdom: int,
+                    date_report: datetime,
+                    income: int,
+                    pure_income: int,
+                    target: int,
+                    last_message: int}
+    :raise ValueError - wrong value
+    :raise TypeError - wrong type (or can't be cast to type)
+    :raise KeyError - user not in DB
+    """
+    _validate_user(user_id)
 
     if query('SELECT COUNT(*) FROM t_user WHERE c_id_user = %s', user_id)[0][0] == 0:
         raise KeyError('user_id doesn\'t exists')
@@ -95,14 +128,13 @@ def get_user(user_id):
 
 
 def del_user(user_id):
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        raise TypeError("user_id is not int")
-
-    if user_id < 0 or user_id > 2000000000:
-        # not bot and not chat
-        raise ValueError("user_id below 0 or higher 2000000000")
+    """
+    Delete user from DB by id
+    :param user_id: int, id vk [from_id]
+    :raise ValueError - wrong value
+    :raise TypeError - wrong type (or can't be cast to type)
+    """
+    _validate_user(user_id)
 
     query('DELETE FROM t_user WHERE c_id_user = %s;', user_id)
     return
@@ -110,14 +142,37 @@ def del_user(user_id):
 
 # User's profile handler
 def set_profile(user_id, nick, lvl, squad, prac, teo, hit, mud):
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        raise TypeError("user_id is not int")
+    """
+    Updates user's profile data in DB by id
+    :param user_id: int, id vk [from_id]
+    :param nick: str
+    :param lvl: int
+    :param squad: str(2)
+    :param prac: int
+    :param teo: int
+    :param hit: int
+    :param mud: int
+    :raise ValueError - wrong value
+    :raise TypeError - wrong type (or can't be cast to type)
+    :raise KeyError - user or squad not in DB
+    """
+    def _validate_stats(stat):
+        """
+        Check stats before input
+        :param stat: int, stat param to check
+        :return: int, stat parameter
+        :raise TypeErrorwrong type (or can't be cast to type)
+        :raise ValueError - wrong value
+        """
+        try:
+            stat = int(stat)
+        except ValueError:
+            raise TypeError("Some stt is not int type")
+        if stat < 0:
+            raise ValueError("Stat can't be negative")
+        return stat
 
-    if user_id < 0 or user_id > 2000000000:
-        # not bot and not chat
-        raise ValueError("user_id below 0 or higher 2000000000")
+    _validate_user(user_id)
 
     if query('SELECT COUNT(*) FROM t_user WHERE c_id_user = %s', user_id)[0][0] == 0:
         raise KeyError('user_id doesn\'t exists')
@@ -127,33 +182,11 @@ def set_profile(user_id, nick, lvl, squad, prac, teo, hit, mud):
     if len(nick) < 3 or len(nick) > 25:
         raise ValueError('nickname should be in length 3-25')
 
-    try:
-        lvl = int(lvl)
-    except ValueError:
-        raise TypeError("lvl is not int")
-    if lvl < 0:
-        raise ValueError("lvl should be positive number")
+    _validate_stats(lvl)
 
-    squad = str(squad)
-    if len(squad) > 2:
-        raise ValueError("squad should be equal or less than 2 symbols")
-    # TODO: Check squads
-    q = query('SELECT c_source FROM t_squad;')
-    squad_list = list()
-    for s in q:
-        squad_list.append(s[0])
-    if squad not in squad_list:
-        raise KeyError("squad %s not exist" % squad)
+    _validate_source(squad)
 
-    try:
-        prac = int(prac)
-        teo = int(teo)
-        hit = int(hit)
-        mud = int(mud)
-    except ValueError as err:
-        raise TypeError("stats is not int (%s)" % err.args[0])
-    if prac < 0 or teo < 0 or hit < 0 or mud < 0:
-        raise ValueError('stats can\'t be negative')
+    prac, teo, hit, mud = _validate_stats(prac), _validate_stats(teo), _validate_stats(hit), _validate_stats(mud)
 
     args = (nick, lvl, squad, prac, teo, hit, mud, user_id)
     query('UPDATE t_user '
@@ -164,14 +197,18 @@ def set_profile(user_id, nick, lvl, squad, prac, teo, hit, mud):
 
 
 def set_report(user_id, dat, inc, pure, target):
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        raise TypeError("user_id is not int")
-
-    if user_id < 0 or user_id > 2000000000:
-        # not bot and not chat
-        raise ValueError("user_id below 0 or higher 2000000000")
+    """
+    Updates Battle report of user in DB
+    :param user_id: inv, id vk [from_id]
+    :param dat: date
+    :param inc: int, income from battle
+    :param pure: int, pure income
+    :param target: int, fraction (0-7)
+    :raise ValueError - wrong value
+    :raise TypeError - wrong type (or can't be cast to type)
+    :raise KeyError - user_id not in DB
+    """
+    _validate_user(user_id)
 
     if query('SELECT COUNT(*) FROM t_user WHERE c_id_user = %s', user_id)[0][0] == 0:
         raise KeyError('user_id doesn\'t exists')
@@ -229,19 +266,14 @@ def set_report(user_id, dat, inc, pure, target):
 
 def change_preference(user_id, key):
     """
-
-    :param user_id: int
+    Toggles preference in DB by id and key
+    :param user_id: int, id vk [from_id]
     :param key: str, ['subscribe', 'profile', 'report']
-    :return:
+    :raise ValueError - wrong value
+    :raise TypeError - wrong type (or can't be cast to type)
+    :raise KeyError - user_id or preference not in DB
     """
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        raise TypeError("user_id is not int")
-
-    if user_id < 0 or user_id > 2000000000:
-        # not bot and not chat
-        raise ValueError("user_id below 0 or higher 2000000000")
+    _validate_user(user_id)
 
     if query('SELECT COUNT(*) FROM t_user WHERE c_id_user = %s', user_id)[0][0] == 0:
         raise KeyError('user_id doesn\'t exists')
